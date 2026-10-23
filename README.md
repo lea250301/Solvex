@@ -8,4 +8,4 @@ Solvex je spletna rešitev za lastnike sončnih elektrarn, ki želijo prijaviti 
 - Avtentikacija: prijava uporabnikov z uporabo e-poštnega naslova in gesla
 
 ## Povezava do dokumentacije
-
+main/docs
