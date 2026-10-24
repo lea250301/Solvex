@@ -1,4 +1,4 @@
-# Spletna aplikacija
+# Izbira dostopa do sistema
 
 ## Kontekst in problem
 Sistem Solvex je namenjen upravljanju vzdrževanja sončnih elektrarn. Uporabnikom omogoča prijavo napak, naročanje rednih pregledov, spremljanje servisnih nalog in pregled zgodovine vzdrževanja. Odločiti se je treba, na kakšen način bodo uporabniki dostopali do sistema.
