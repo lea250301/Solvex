@@ -16,5 +16,6 @@ Izbrana odločitev: "Enotna aplikacija, kjer so frontend, backend in podatkovna 
 
 ### Posledice
 
-* Good, because {positive consequence, e.g., improvement of one or more desired qualities, …}
-* Bad, because {negative consequence, e.g., compromising one or more desired qualities, …}
+* Slabo, ker je potrebno urediti ustrezno komunikacijo med frontendom in backendom
+* Dobro, ker je posamezne dele sistema lažje nadgrajevati in testirati
+* Dobro, ker lahko frontend in backend komunicirata preko API-ja
