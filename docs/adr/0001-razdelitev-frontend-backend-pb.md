@@ -1,23 +1,20 @@
-# {Ločitev frontenda, backenda in podatkovne baze}
+# Ločitev frontenda, backenda in podatkovne baze
 
-## Context and Problem Statement
+## Kontekst in problem
+Sistem Solvex je spletna aplikacija za prijavo napak na sončnih elektrarnah, naročanje rednih pregledov, dodeljevanje servisnih nalog in pregled zgodovine vzdrževanja. Ker sistem uporabljajo različne vrste uporabnikov, kot so lastniki sončnih elektrarn, serviserji, vodja servisa in administrator, je pomembno, da je njegova arhitektura pregledna in omogoča enostavno vzdrževanje ter nadaljnji razvoj.
 
-{Describe the context and problem statement, e.g., in free form using two to three sentences or in the form of an illustrative story. You may want to articulate the problem in form of a question. Consider adding links to collaboration boards or issue management systems. Make the scope of the decision explicit, for instance, by calling out or pointing at structural architecture elements (components, connectors, ...).}
+Odločiti se je treba, ali bodo uporabniški vmesnik, poslovna logika in podatkovna baza združeni v eno celoto ali razdeljeni na ločene dele sistema.
 
-## Considered Options
+## Možne opcije
 
-* {title of option 1}
-* {title of option 2}
-* {title of option 3}
-* … <!-- numbers of options can vary -->
+* Enotna aplikacija, kjer so frontend, backend in podatkovna baza povezani
+* Enotna aplikacija, kjer so frontend, backend in podatkovna baza ločeni
 
-## Decision Outcome
+## Izbrana opcija
 
-Chosen option: "{title of option 1}", because {justification. e.g., only option, which meets k.o. criterion decision driver | which resolves force {force} | … | comes out best (see below)}.
+Izbrana odločitev: "Enotna aplikacija, kjer so frontend, backend in podatkovna baza ločeni", ker takšna arhitektura omogoča jasno ločitev odgovornosti posameznih delov sistema, lažje vzdrževanje in neodvisno spreminjanje posameznih komponent. Primerna je za obseg projekta Solvex, saj omogoča nadaljnji razvoj brez nepotrebne kompleksnosti.
 
-<!-- This is an optional element. Feel free to remove. -->
-### Consequences
+### Posledice
 
 * Good, because {positive consequence, e.g., improvement of one or more desired qualities, …}
 * Bad, because {negative consequence, e.g., compromising one or more desired qualities, …}
-* … <!-- numbers of consequences can vary -->
