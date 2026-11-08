@@ -66,7 +66,7 @@
 **Acceptance criteria:**
 
 1. Ko serviser izbere oziroma potrdi izbiro servisa, se mu izpišejo podrobnejši podatki o sončni elektrarni in morebitnih okvarah
-2. Serviser lahko vidi krajše opise nazadnje opravljenih (krajše število pregledov) servisov izbrane sončne elektrarne, vzroke za napake in kako so bili rešeni (uspešno ali neuspešno)
+2. Serviser lahko vidi krajše opise nazadnje opravljenih (krajše število pregledov = zadnjih 5) servisov izbrane sončne elektrarne, vzroke za napake in kako so bili rešeni (uspešno ali neuspešno)
 3. Serviser lahko vidi ali so kateri deli na elektrarni bili zamenjani ali ne, starost določenih delov, proizvajalca ipd.
 4. Serviser lahko samo preglejuje podatke, ne more jih spreminjati ali urejati.
 ---
@@ -122,7 +122,7 @@
 4. Vodja servisa lahko spremeni termin in v tem primeru obvesti tako lastnika kot serviserja/-e.
 ---
 **US - 13:** *Dodajanje novih funkcionalnosti*
->  Kot administrator želim dodati nove funkcionalnost na zahtevo vodje servisa ali v splošne kot nadgradnja sistema, saj bi s tem izboljšal upravljanje sistema in servisni proces.
+>  Kot administrator želim dodati nove funkcionalnost na zahtevo vodje servisa ali v splošnem kot nadgradnja sistema, saj bi s tem izboljšal upravljanje sistema in servisni proces.
 
 **Acceptance criteria:**
 

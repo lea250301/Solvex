@@ -9,3 +9,7 @@ Solvex je spletna rešitev za lastnike sončnih elektrarn, ki želijo prijaviti 
 
 ## Povezava do dokumentacije
 https://github.com/lea250301/Solvex 
+Projekt lokalno zaženemo:
+- v terminal v korenski mapi vpišemo docker compose up
+- v terminal znotraj backend mape vpišemo npm run dev
+- v terminal znotraj frontend mape vpišemo npm run dev
