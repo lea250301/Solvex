@@ -9,3 +9,25 @@ Solvex je spletna rešitev za lastnike sončnih elektrarn, ki želijo prijaviti 
 
 ## Povezava do dokumentacije
 https://github.com/lea250301/Solvex 
+
+## Zagon
+
+Predpogoji: Docker Desktop, Node.js in npm.  
+
+Pred zagonom ustvarite `.env` v korenski mapi in `backend/.env` z lokalnimi povezovalnimi podatki. Te datoteke ne dodajajte v Git.  
+
+Zaženite bazo iz korenske mape projekta v terminalu:  
+
+*docker compose up -d db*
+
+Backend zaženite v ločenem terminalu z:  
+    cd backend  
+    npm ci  
+    npm run dev  
+
+Frontend zaženite v ločenem terminalu z:  
+    cd frontend  
+    npm ci  
+    npm run dev   
+
+Frontend je dostopen na http://localhost:5173, backend na http://localhost:3000.

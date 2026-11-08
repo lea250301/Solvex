@@ -1,1 +1,0 @@
-ful dober frontend
