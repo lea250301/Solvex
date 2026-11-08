@@ -5,7 +5,9 @@ CREATE TABLE customers (
     email VARCHAR(254) NOT NULL UNIQUE,
     password_hash TEXT NOT NULL,
     phone VARCHAR(30),
-    address TEXT NOT NULL
+    address TEXT NOT NULL,
+    postal_code VARCHAR(20) NOT NULL,
+    city VARCHAR(100) NOT NULL
 );
 
 CREATE TABLE employees (
