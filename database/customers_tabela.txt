@@ -1,0 +1,19 @@
+INSERT INTO customers (
+    first_name, last_name, email, password_hash, phone, address, postal_code, city
+)
+    VALUES
+        ('Luka', 'Pukšič', 'luka.puksic@primer.com', '$argon2id$v=19$m=65536,t=3,p=4$AxJdOaFAtAp6s4EXpIPIZg$IMLfNVtCeVWlbVda8kIqJMlbCHnnFHUh4LOPhmrumnk', '051690123', 'Lepa ulica 2', '1000', 'Ljubljana'),
+        ('Janez', 'Krneža', 'janez.krneza@primer.com', '$argon2id$v=19$m=65536,t=3,p=4$AxJdOaFAtAp6s4EXpIPIZg$IMLfNVtCeVWlbVda8kIqJMlbCHnnFHUh4LOPhmrumnk', '041777900', 'Suha ulica 3', '2000', 'Maribor'),
+        ('Maja', 'Primec', 'maja.primec@primer.com', '$argon2id$v=19$m=65536,t=3,p=4$AxJdOaFAtAp6s4EXpIPIZg$IMLfNVtCeVWlbVda8kIqJMlbCHnnFHUh4LOPhmrumnk', '030690123', 'Kostanjeva ulica 4', '3000', 'Celje'),
+        ('Franc', 'Prešeren', 'franc.preseren@primer.com', '$argon2id$v=19$m=65536,t=3,p=4$AxJdOaFAtAp6s4EXpIPIZg$IMLfNVtCeVWlbVda8kIqJMlbCHnnFHUh4LOPhmrumnk', '041477034', 'Fertik cesta 7', '4000', 'Kranj'),
+        ('Petra', 'Kumer', 'pkumer@primer.com', '$argon2id$v=19$m=65536,t=3,p=4$AxJdOaFAtAp6s4EXpIPIZg$IMLfNVtCeVWlbVda8kIqJMlbCHnnFHUh4LOPhmrumnk', NULL, 'Sončna cesta 34', '5000', 'Nova Gorica'),
+        ('Domen', 'Jenko', 'domenjenko@primer.com', '$argon2id$v=19$m=65536,t=3,p=4$AxJdOaFAtAp6s4EXpIPIZg$IMLfNVtCeVWlbVda8kIqJMlbCHnnFHUh4LOPhmrumnk', NULL, 'Trnovska cesta 14', '6000', 'Koper'),
+        ('Marko', 'Pernat', 'marper@primer.com', '$argon2id$v=19$m=65536,t=3,p=4$AxJdOaFAtAp6s4EXpIPIZg$IMLfNVtCeVWlbVda8kIqJMlbCHnnFHUh4LOPhmrumnk', '069234890', 'Nova ulica 8', '8000', 'Novo mesto'),
+        ('Blaž', 'Kranjec', 'blazkr90@primer.com', '$argon2id$v=19$m=65536,t=3,p=4$AxJdOaFAtAp6s4EXpIPIZg$IMLfNVtCeVWlbVda8kIqJMlbCHnnFHUh4LOPhmrumnk', '051707703', 'Testna ulica 9', '9000', 'Murska Sobota'),
+        ('Matevž', 'Goričnik', 'matevzgoricnik@primer.com', '$argon2id$v=19$m=65536,t=3,p=4$AxJdOaFAtAp6s4EXpIPIZg$IMLfNVtCeVWlbVda8kIqJMlbCHnnFHUh4LOPhmrumnk', '051234894', 'Gorečna 18', '1000', 'Ljubljana'),
+        ('Stevo', 'Kralj', 'kraljstevo@primer.com', '$argon2id$v=19$m=65536,t=3,p=4$AxJdOaFAtAp6s4EXpIPIZg$IMLfNVtCeVWlbVda8kIqJMlbCHnnFHUh4LOPhmrumnk', NULL, 'Šakalsko 10', '2000', 'Maribor'),
+        ('Marjan', 'Štih', 'marjanstih1980@primer.com', '$argon2id$v=19$m=65536,t=3,p=4$AxJdOaFAtAp6s4EXpIPIZg$IMLfNVtCeVWlbVda8kIqJMlbCHnnFHUh4LOPhmrumnk', NULL, 'Pleskarska cesta 52', '3000', 'Celje'),
+        ('Lan', 'Šerbič', 'lan.stih@primer.com', '$argon2id$v=19$m=65536,t=3,p=4$AxJdOaFAtAp6s4EXpIPIZg$IMLfNVtCeVWlbVda8kIqJMlbCHnnFHUh4LOPhmrumnk', NULL, 'Jankarska ulica 13', '4000', 'Kranj'),
+        ('Jože', 'Bogovič', 'bogovicjoze@primer.com', '$argon2id$v=19$m=65536,t=3,p=4$AxJdOaFAtAp6s4EXpIPIZg$IMLfNVtCeVWlbVda8kIqJMlbCHnnFHUh4LOPhmrumnk', '051333123', 'Bogata cesta 63', '5000', 'Nova Gorica'),
+        ('Simona', 'Ekart', 'se1993@primer.com', '$argon2id$v=19$m=65536,t=3,p=4$AxJdOaFAtAp6s4EXpIPIZg$IMLfNVtCeVWlbVda8kIqJMlbCHnnFHUh4LOPhmrumnk', '070234888', 'Novi trg 6', '6000', 'Koper'),
+        ('Gaj', 'Merko', 'gajmerko@primer.com', '$argon2id$v=19$m=65536,t=3,p=4$AxJdOaFAtAp6s4EXpIPIZg$IMLfNVtCeVWlbVda8kIqJMlbCHnnFHUh4LOPhmrumnk', '031642110', 'Prekrasna pot 46', '8000', 'Novo mesto');
