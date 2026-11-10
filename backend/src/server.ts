@@ -16,6 +16,65 @@ const pool = new Pool({
 
 app.use(express.json());
 
+app.post("/employees/login", async (request, response) => {
+  const body = (request.body ?? {}) as Record<string, unknown>;
+  const email =
+    typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
+  const password = typeof body.password === "string" ? body.password : "";
+
+  if (!email || !password) {
+    return response.status(400).json({
+      message: "Vnesi e-poštni naslov in geslo.",
+    });
+  }
+
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254) {
+    return response.status(400).json({
+      message: "Vnesi veljaven e-poštni naslov.",
+    });
+  }
+
+  try {
+    const result = await pool.query(
+      `SELECT first_name, last_name, email, password_hash, service_type
+      FROM employees
+      WHERE email = $1`,
+      [email],
+    );
+    const employee = result.rows[0] as
+      | {
+          first_name: string;
+          last_name: string;
+          email: string;
+          password_hash: string;
+          service_type: string;
+        }
+      | undefined;
+
+    if (!employee || !(await argon2.verify(employee.password_hash, password))) {
+      return response.status(401).json({
+        message: "E-poštni naslov ali geslo ni pravilno.",
+      });
+    }
+
+    return response.status(200).json({
+      message: "Prijava je uspela.",
+      employee: {
+        first_name: employee.first_name,
+        last_name: employee.last_name,
+        email: employee.email,
+        service_type: employee.service_type,
+      },
+    });
+  } catch (error) {
+    console.error("Employee login failed:", error);
+
+    return response.status(500).json({
+      message: "Pri prijavi je prišlo do napake.",
+    });
+  }
+});
+
 app.post("/customers/register", async (request, response) => {
   const body = (request.body ?? {}) as Record<string, unknown>;
 

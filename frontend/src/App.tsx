@@ -1,70 +1,48 @@
-import { useState, type ChangeEvent, type FormEvent } from 'react'
+import { useState, type SubmitEvent } from 'react'
 import './App.css'
 
-type RegistrationFormData = {
-  firstName: string
-  lastName: string
+type Employee = {
+  first_name: string
+  last_name: string
   email: string
-  password: string
-  phone: string
-  address: string
-  postalCode: string
-  city: string
-}
-
-const emptyForm: RegistrationFormData = {
-  firstName: '',
-  lastName: '',
-  email: '',
-  password: '',
-  phone: '',
-  address: '',
-  postalCode: '',
-  city: '',
+  service_type: string
 }
 
 function App() {
-  const [formData, setFormData] = useState<RegistrationFormData>(emptyForm)
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [employee, setEmployee] = useState<Employee | null>(null)
   const [notice, setNotice] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  function handleChange(
-  event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-  ) {
-  const { name } = event.target
-  event.currentTarget.setCustomValidity('')
-
-  const value =
-    name === 'postalCode'
-      ? event.currentTarget.value.replace(/\D/g, '')
-      : event.currentTarget.value
-
-  setFormData((current) => ({ ...current, [name]: value }))
-  }
-
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleLogin(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault()
     setNotice('')
     setIsSubmitting(true)
 
     try {
-      const response = await fetch('/api/customers/register', {
+      const response = await fetch('/api/employees/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({ email, password }),
       })
-
       const result = (await response.json().catch(() => ({}))) as {
         message?: string
+        employee?: Employee
       }
 
       if (!response.ok) {
-        setNotice(result.message ?? 'Registracija ni uspela.')
+        setNotice(result.message ?? 'Prijava ni uspela.')
         return
       }
 
-      setNotice(result.message ?? 'Registracija je uspela.')
-      setFormData(emptyForm)
+      if (!result.employee) {
+        setNotice('Prijava ni uspela. Poskusi znova.')
+        return
+      }
+
+      setEmployee(result.employee)
+      setPassword('')
     } catch {
       setNotice('Backend trenutno ni dosegljiv. Poskusi znova.')
     } finally {
@@ -72,124 +50,112 @@ function App() {
     }
   }
 
-  return (
-    <main className="registration-page">
-      <section className="registration-card">
-        <h1>USTVARI RAČUN</h1>
-        <p>Registracija v sistem Solvex</p>
+  function handleLogout() {
+    setEmployee(null)
+    setEmail('')
+    setPassword('')
+    setNotice('')
+  }
 
-        <form onSubmit={handleSubmit}>
-          <label htmlFor="firstName">
-            Ime: <span className="required">*</span>
-          </label>
-          <input
-            id="firstName"
-            name="firstName"
-            maxLength={100}
-            value={formData.firstName}
-            onChange={handleChange}
-            required
-          />
-
-          <label htmlFor="lastName">
-            Priimek: <span className="required">*</span>
-          </label>
-          <input
-            id="lastName"
-            name="lastName"
-            maxLength={100}
-            value={formData.lastName}
-            onChange={handleChange}
-            required
-          />
-
-          <label htmlFor="email">
-            E-pošta: <span className="required">*</span>
-          </label>
-          <input
-            id="email"
-            name="email"
-            type="email"
-            maxLength={254}
-            value={formData.email}
-            onChange={handleChange}
-            required
-          />
-
-          <label htmlFor="password">
-            Geslo: <span className="required">*</span>
-          </label>
-          <input
-            id="password"
-            name="password"
-            type="password"
-            minLength={8}
-            value={formData.password}
-            onChange={handleChange}
-            onInvalid={(event) => {
-              event.currentTarget.setCustomValidity(
-              event.currentTarget.value.length === 0
-                ? 'Geslo je obvezno.'
-                : 'Geslo mora vsebovati vsaj 8 znakov.',
-              )
-            }}
-            required
-          />
-
-          <label htmlFor="phone">Telefon:</label>
-          <input
-            id="phone"
-            name="phone"
-            type="tel"
-            maxLength={30}
-            value={formData.phone}
-            onChange={handleChange}
-          />
-
-          <label htmlFor="address">
-            Ulica in hišna številka: <span className="required">*</span>
-          </label>
-          <input
-            id="address"
-            name="address"
-            value={formData.address}
-            onChange={handleChange}
-            required
-          />
-
-          <label htmlFor="postalCode">
-            Poštna številka: <span className="required">*</span>
-          </label>
-          <input
-            id="postalCode"
-            name="postalCode"
-            type="text"
-            inputMode="numeric"
-            pattern="[0-9]+"
-            maxLength={20}
-            value={formData.postalCode}
-            onChange={handleChange}
-            required
-          />
-
-          <label htmlFor="city">
-            Kraj: <span className="required">*</span>
-          </label>
-          <input
-            id="city"
-            name="city"
-            maxLength={100}
-            value={formData.city}
-            onChange={handleChange}
-            required
-          />
-
-          <button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? 'REGISTRACIJA ...' : 'USTVARI RAČUN'}
+  if (employee) {
+    return (
+      <main className="dashboard-page">
+        <header className="dashboard-header">
+          <a className="brand" href="#" aria-label="Solvex">
+            <span className="brand-mark" aria-hidden="true">S</span>
+            <span>solvex</span>
+          </a>
+          <button className="text-button" type="button" onClick={handleLogout}>
+            Odjava
           </button>
-        </form>
+        </header>
+        <section className="dashboard-content">
+          <h1>Živjo, {employee.first_name}!</h1>
+          <div className="dashboard-placeholder">
+            <span className="placeholder-icon" aria-hidden="true">✦</span>
+            <h2>Tvoj dashboard je pripravljen</h2>
+            <p>
+              Tukaj bodo zbrane servisne zahteve, delovni nalogi in ostala
+              orodja za ekipo Solvex.
+            </p>
+          </div>
+        </section>
+      </main>
+    )
+  }
 
-        {notice && <p role="status">{notice}</p>}
+  //LOGIN PAGE
+  return (
+    <main className="auth-page">
+      <section className="auth-visual" aria-label="O Solvexu">
+        <a className="brand brand-light" href="#" aria-label="Solvex">
+          <span className="brand-mark" aria-hidden="true">S</span>
+          <span>solvex</span>
+        </a>
+        <div className="visual-copy">
+          <span className="eyebrow">SONČNA ENERGIJA, BREZ SKRBI</span>
+          <h1>Skrb za energijo na enem mestu.</h1>
+          <p>
+            Dobrodošli v delovnem prostoru ekipe Solvex. Vpišite se za dostop do
+            svojega dashboarda.
+          </p>
+        </div>
+        <div className="visual-footer">
+          <span className="sun-icon" aria-hidden="true">☼</span>
+          <span>Več energije. Manj skrbi.</span>
+        </div>
+        <div className="visual-orb visual-orb-one" />
+        <div className="visual-orb visual-orb-two" />
+      </section>
+
+      <section className="auth-panel">
+        <div className="auth-form-wrap">
+          <span className="mobile-brand brand">
+            <span className="brand-mark" aria-hidden="true">S</span>
+            <span>solvex</span>
+          </span>
+          <span className="eyebrow">DOSTOP ZA ZAPOSLENE</span>
+          <h2>Prijava v račun</h2>
+          <p className="form-intro">
+            Vpišite se s službenim e-poštnim naslovom in geslom.
+          </p>
+
+          <form className="auth-form login-form" onSubmit={handleLogin}>
+            <div className="field">
+              <label htmlFor="email">Službeni e-poštni naslov</label>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                autoComplete="username"
+                placeholder="ime@primer.si"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                required
+              />
+            </div>
+            <div className="field">
+              <label htmlFor="password">Geslo</label>
+              <input
+                id="password"
+                name="password"
+                type="password"
+                autoComplete="current-password"
+                placeholder="Vnesi svoje geslo"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                required
+              />
+            </div>
+            <button className="submit-button" type="submit" disabled={isSubmitting}>
+              {isSubmitting ? 'Prijavljanje ...' : 'Prijava'}
+              {!isSubmitting && <span aria-hidden="true">→</span>}
+            </button>
+          </form>
+
+          {notice && <p className="form-notice" role="status">{notice}</p>}
+          <p className="form-legal">Dostop je namenjen zaposlenim v Solvexu.</p>
+        </div>
       </section>
     </main>
   )
