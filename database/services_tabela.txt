@@ -1,0 +1,76 @@
+INSERT INTO services (
+    id_solar_plant, id_service_request, service_type,
+    id_employee, id_manager, status
+)
+VALUES
+(
+    (SELECT sp.id_solar_plants
+     FROM solar_plants sp
+     JOIN customers c ON c.id = sp.id_customer
+     WHERE c.email = 'luka.puksic@primer.com'),
+    (SELECT id FROM service_requests
+     WHERE description = 'Elektrarna občasno preneha proizvajati elektriko.'),
+    'electrical', 1,
+    (SELECT id FROM managers WHERE email = 'vojkokrenker@solvex.si'),
+    'planned'
+),
+(
+    (SELECT sp.id_solar_plants FROM solar_plants sp JOIN customers c ON c.id = sp.id_customer WHERE c.email = 'janez.krneza@primer.com'),
+    (SELECT id FROM service_requests WHERE description = 'Na razsmerniku se prikazuje opozorilo.'),
+    'electrical', 1, (SELECT id FROM managers WHERE email = 'vojkokrenker@solvex.si'), 'planned'
+),
+(
+    (SELECT sp.id_solar_plants FROM solar_plants sp JOIN customers c ON c.id = sp.id_customer WHERE c.email = 'maja.primec@primer.com'),
+    (SELECT id FROM service_requests WHERE description = 'Redni letni pregled elektrarne.'),
+    'electrical', 1, (SELECT id FROM managers WHERE email = 'vojkokrenker@solvex.si'), 'planned'
+),
+(
+    (SELECT sp.id_solar_plants FROM solar_plants sp JOIN customers c ON c.id = sp.id_customer WHERE c.email = 'franc.preseren@primer.com'),
+    (SELECT id FROM service_requests WHERE description = 'Po močnem vetru se zdi en panel poškodovan.'),
+    'electrical', 1, (SELECT id FROM managers WHERE email = 'vojkokrenker@solvex.si'), 'planned'
+),
+(
+    (SELECT sp.id_solar_plants FROM solar_plants sp JOIN customers c ON c.id = sp.id_customer WHERE c.email = 'pkumer@primer.com'),
+    (SELECT id FROM service_requests WHERE description = 'Proizvodnja je zadnje dni precej nižja kot običajno.'),
+    'electrical', 1, (SELECT id FROM managers WHERE email = 'vojkokrenker@solvex.si'), 'planned'
+),
+(
+    (SELECT sp.id_solar_plants FROM solar_plants sp JOIN customers c ON c.id = sp.id_customer WHERE c.email = 'domenjenko@primer.com'),
+    (SELECT id FROM service_requests WHERE description = 'Pregled panelov in pritrdilne konstrukcije.'),
+    'electrical', 1, (SELECT id FROM managers WHERE email = 'vojkokrenker@solvex.si'), 'planned'
+),
+(
+    (SELECT sp.id_solar_plants FROM solar_plants sp JOIN customers c ON c.id = sp.id_customer WHERE c.email = 'marper@primer.com'),
+    (SELECT id FROM service_requests WHERE description = 'Baterija se ne napolni do običajne ravni.'),
+    'electrical', 1, (SELECT id FROM managers WHERE email = 'vojkokrenker@solvex.si'), 'planned'
+),
+(
+    (SELECT sp.id_solar_plants FROM solar_plants sp JOIN customers c ON c.id = sp.id_customer WHERE c.email = 'blazkr90@primer.com'),
+    (SELECT id FROM service_requests WHERE description = 'Na enem delu panelov je vidna razpoka.'),
+    'electrical', 1, (SELECT id FROM managers WHERE email = 'vojkokrenker@solvex.si'), 'planned'
+),
+(
+    (SELECT sp.id_solar_plants FROM solar_plants sp JOIN customers c ON c.id = sp.id_customer WHERE c.email = 'matevzgoricnik@primer.com'),
+    (SELECT id FROM service_requests WHERE description = 'Redni pregled pred zimskim obdobjem.'),
+    'electrical', 1, (SELECT id FROM managers WHERE email = 'vojkokrenker@solvex.si'), 'planned'
+),
+(
+    (SELECT sp.id_solar_plants FROM solar_plants sp JOIN customers c ON c.id = sp.id_customer WHERE c.email = 'kraljstevo@primer.com'),
+    (SELECT id FROM service_requests WHERE description = 'Razsmernik se večkrat na dan nepričakovano izklopi.'),
+    'electrical', 1, (SELECT id FROM managers WHERE email = 'vojkokrenker@solvex.si'), 'planned'
+),
+(
+    (SELECT sp.id_solar_plants FROM solar_plants sp JOIN customers c ON c.id = sp.id_customer WHERE c.email = 'marjanstih1980@primer.com'),
+    (SELECT id FROM service_requests WHERE description = 'Sistem javlja napako pri povezavi z baterijo.'),
+    'electrical', 1, (SELECT id FROM managers WHERE email = 'vojkokrenker@solvex.si'), 'planned'
+),
+(
+    (SELECT sp.id_solar_plants FROM solar_plants sp JOIN customers c ON c.id = sp.id_customer WHERE c.email = 'lan.stih@primer.com'),
+    (SELECT id FROM service_requests WHERE description = 'Redni pregled in preverjanje delovanja sistema.'),
+    'electrical', 1, (SELECT id FROM managers WHERE email = 'vojkokrenker@solvex.si'), 'planned'
+),
+(
+    (SELECT sp.id_solar_plants FROM solar_plants sp JOIN customers c ON c.id = sp.id_customer WHERE c.email = 'bogovicjoze@primer.com'),
+    (SELECT id FROM service_requests WHERE description = 'Po nevihti sistem ne oddaja pričakovane moči.'),
+    'electrical', 1, (SELECT id FROM managers WHERE email = 'vojkokrenker@solvex.si'), 'planned'
+);

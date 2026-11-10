@@ -1,0 +1,71 @@
+INSERT INTO solar_plants (
+    id_customer, name, installation_address, postal_code, city,
+    installed_capacity_kw, panel_count, has_battery,
+    battery_capacity_kwh, installed_on
+)
+VALUES
+(
+    (SELECT id FROM customers WHERE email = 'luka.puksic@primer.com'),
+    'Testna elektrarna 01', 'Lepa ulica 2', '1000', 'Ljubljana',
+    5.50, 14, FALSE, NULL, DATE '2022-04-15'
+),
+(
+    (SELECT id FROM customers WHERE email = 'janez.krneza@primer.com'),
+    'Testna elektrarna 02', 'Suha ulica 3', '2000', 'Maribor',
+    8.00, 20, TRUE, 10.00, DATE '2022-06-20'
+),
+(
+    (SELECT id FROM customers WHERE email = 'maja.primec@primer.com'),
+    'Testna elektrarna 03', 'Kostanjeva ulica 4', '3000', 'Celje',
+    6.50, 16, FALSE, NULL, DATE '2022-08-10'
+),
+(
+    (SELECT id FROM customers WHERE email = 'franc.preseren@primer.com'),
+    'Testna elektrarna 04', 'Fertik cesta 7', '4000', 'Kranj',
+    10.00, 24, TRUE, 13.50, DATE '2023-03-12'
+),
+(
+    (SELECT id FROM customers WHERE email = 'pkumer@primer.com'),
+    'Testna elektrarna 05', 'Sončna cesta 34', '5000', 'Nova Gorica',
+    7.50, 18, FALSE, NULL, DATE '2023-05-18'
+),
+(
+    (SELECT id FROM customers WHERE email = 'domenjenko@primer.com'),
+    'Testna elektrarna 06', 'Trnovska cesta 14', '6000', 'Koper',
+    12.00, 28, TRUE, 15.00, DATE '2023-07-22'
+),
+(
+    (SELECT id FROM customers WHERE email = 'marper@primer.com'),
+    'Testna elektrarna 07', 'Nova ulica 8', '8000', 'Novo mesto',
+    5.00, 12, FALSE, NULL, DATE '2023-09-05'
+),
+(
+    (SELECT id FROM customers WHERE email = 'blazkr90@primer.com'),
+    'Testna elektrarna 08', 'Testna ulica 9', '9000', 'Murska Sobota',
+    9.00, 21, TRUE, 10.00, DATE '2024-02-14'
+),
+(
+    (SELECT id FROM customers WHERE email = 'matevzgoricnik@primer.com'),
+    'Testna elektrarna 09', 'Gorečna 18', '1000', 'Ljubljana',
+    11.00, 26, FALSE, NULL, DATE '2024-04-09'
+),
+(
+    (SELECT id FROM customers WHERE email = 'kraljstevo@primer.com'),
+    'Testna elektrarna 10', 'Šakalsko 10', '2000', 'Maribor',
+    6.80, 16, FALSE, NULL, DATE '2024-06-17'
+),
+(
+    (SELECT id FROM customers WHERE email = 'marjanstih1980@primer.com'),
+    'Testna elektrarna 11', 'Pleskarska cesta 52', '3000', 'Celje',
+    8.40, 20, TRUE, 12.00, DATE '2024-08-21'
+),
+(
+    (SELECT id FROM customers WHERE email = 'lan.stih@primer.com'),
+    'Testna elektrarna 12', 'Jankarska ulica 13', '4000', 'Kranj',
+    13.50, 32, TRUE, 15.00, DATE '2025-03-11'
+),
+(
+    (SELECT id FROM customers WHERE email = 'bogovicjoze@primer.com'),
+    'Testna elektrarna 13', 'Bogata cesta 63', '5000', 'Nova Gorica',
+    5.70, 14, FALSE, NULL, DATE '2025-05-16'
+);
