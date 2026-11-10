@@ -52,7 +52,7 @@ CREATE TABLE solar_plants (
 CREATE TABLE services (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     id_solar_plant BIGINT NOT NULL
-        REFERENCES solar_plants(id) ON DELETE RESTRICT,
+        REFERENCES solar_plants(id_solar_plants) ON DELETE RESTRICT,
     id_service_request BIGINT,
     service_type VARCHAR(20) NOT NULL
         CHECK (service_type IN ('cleaning', 'electrical', 'installer')),
@@ -84,7 +84,7 @@ CREATE TABLE service_reports (
 CREATE TABLE service_requests (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     id_solar_plant BIGINT NOT NULL
-        REFERENCES solar_plants(id) ON DELETE RESTRICT,
+        REFERENCES solar_plants(id_solar_plants) ON DELETE RESTRICT,
     request_type VARCHAR(30) NOT NULL
         CHECK (request_type IN ('fault_report', 'regular_inspection')),
     description TEXT,
@@ -98,3 +98,4 @@ CREATE TABLE service_requests (
     ),
     UNIQUE (id, id_solar_plant)
 );
+
