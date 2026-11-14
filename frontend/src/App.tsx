@@ -8,10 +8,13 @@ type Employee = {
   service_type: string
 }
 
+type DashboardPage = 'services' | 'reports'
+
 function App() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [employee, setEmployee] = useState<Employee | null>(null)
+  const [dashboardPage, setDashboardPage] = useState<DashboardPage>('services')
   const [notice, setNotice] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -65,18 +68,45 @@ function App() {
             <span className="brand-mark" aria-hidden="true">S</span>
             <span>solvex</span>
           </a>
+          <nav className="dashboard-nav" aria-label="Navigacija zaposlenega">
+            <button
+              className={`dashboard-nav-button${dashboardPage === 'services' ? ' active' : ''}`}
+              type="button"
+              aria-current={dashboardPage === 'services' ? 'page' : undefined}
+              onClick={() => setDashboardPage('services')}
+            >
+              Servisi
+            </button>
+            <button
+              className={`dashboard-nav-button${dashboardPage === 'reports' ? ' active' : ''}`}
+              type="button"
+              aria-current={dashboardPage === 'reports' ? 'page' : undefined}
+              onClick={() => setDashboardPage('reports')}
+            >
+              Servisna poročila
+            </button>
+          </nav>
           <button className="text-button" type="button" onClick={handleLogout}>
             Odjava
           </button>
         </header>
         <section className="dashboard-content">
-          <h1>Živjo, {employee.first_name}!</h1>
+          <h1>
+            {dashboardPage === 'services'
+              ? `Živjo, ${employee.first_name}!`
+              : 'Servisna poročila'}
+          </h1>
           <div className="dashboard-placeholder">
             <span className="placeholder-icon" aria-hidden="true">✦</span>
-            <h2>Tvoj dashboard je pripravljen</h2>
+            <h2>
+              {dashboardPage === 'services'
+                ? 'Servisi bodo prikazani tukaj'
+                : 'Servisna poročila bodo prikazana tukaj'}
+            </h2>
             <p>
-              Tukaj bodo zbrane servisne zahteve, delovni nalogi in ostala
-              orodja za ekipo Solvex.
+              {dashboardPage === 'services'
+                ? 'Seznam servisov bomo povezali z backendom v naslednjem koraku.'
+                : 'Pregled in urejanje servisnih poročil bomo dodali v naslednjem koraku.'}
             </p>
           </div>
         </section>
