@@ -2,6 +2,7 @@ import { useEffect, useState, type SubmitEvent } from 'react'
 import './App.css'
 
 type Employee = {
+  id: string
   first_name: string
   last_name: string
   email: string
@@ -23,6 +24,17 @@ type Service = {
   customer_last_name: string
   employee_first_name: string | null
   employee_last_name: string | null
+}
+
+type ServiceReport = {
+  id: string
+  id_service: string
+  service_type: string
+  solar_plant_name: string
+  work_summary: string
+  findings: string | null
+  recommendations: string | null
+  reported_at: string
 }
 
 type DashboardPage = 'services' | 'reports'
@@ -62,6 +74,15 @@ function App() {
   const [services, setServices] = useState<Service[]>([])
   const [servicesState, setServicesState] = useState<'idle' | 'loading' | 'loaded' | 'error'>('idle')
   const [servicesError, setServicesError] = useState('')
+  const [assignedServices, setAssignedServices] = useState<Service[]>([])
+  const [assignedServicesState, setAssignedServicesState] = useState<'idle' | 'loading' | 'loaded' | 'error'>('idle')
+  const [assignedServicesError, setAssignedServicesError] = useState('')
+  const [reports, setReports] = useState<ServiceReport[]>([])
+  const [reportsState, setReportsState] = useState<'idle' | 'loading' | 'loaded' | 'error'>('idle')
+  const [reportsError, setReportsError] = useState('')
+  const [isCreatingReport, setIsCreatingReport] = useState(false)
+  const [reportFormNotice, setReportFormNotice] = useState('')
+  const [isSubmittingReport, setIsSubmittingReport] = useState(false)
 
   useEffect(() => {
     if (!employee || dashboardPage !== 'services') {
@@ -113,6 +134,96 @@ function App() {
     return () => controller.abort()
   }, [employee, dashboardPage])
 
+  useEffect(() => {
+    if (!employee || dashboardPage !== 'reports') {
+      return
+    }
+
+    const controller = new AbortController()
+    const employeePath = `/api/employees/${encodeURIComponent(employee.id)}`
+
+    async function loadAssignedServices() {
+      setAssignedServicesState('loading')
+      setAssignedServicesError('')
+
+      try {
+        const response = await fetch(`${employeePath}/services`, {
+          signal: controller.signal,
+        })
+        const result = (await response.json().catch(() => ({}))) as {
+          message?: string
+          services?: Service[]
+        }
+
+        if (!response.ok) {
+          throw new Error(result.message ?? 'Seznama dodeljenih servisov ni bilo mogoče naložiti.')
+        }
+
+        if (!Array.isArray(result.services)) {
+          throw new Error('Backend je vrnil neveljaven seznam servisov.')
+        }
+
+        setAssignedServices(result.services)
+        setAssignedServicesState('loaded')
+      } catch (error) {
+        if (controller.signal.aborted) {
+          return
+        }
+
+        console.error('Assigned service list request failed:', error)
+        setAssignedServicesError(
+          error instanceof Error
+            ? error.message
+            : 'Seznama dodeljenih servisov ni bilo mogoče naložiti.',
+        )
+        setAssignedServicesState('error')
+      }
+    }
+
+    async function loadReports() {
+      setReportsState('loading')
+      setReportsError('')
+
+      try {
+        const response = await fetch(`${employeePath}/service-reports`, {
+          signal: controller.signal,
+        })
+        const result = (await response.json().catch(() => ({}))) as {
+          message?: string
+          reports?: ServiceReport[]
+        }
+
+        if (!response.ok) {
+          throw new Error(result.message ?? 'Seznama servisnih poročil ni bilo mogoče naložiti.')
+        }
+
+        if (!Array.isArray(result.reports)) {
+          throw new Error('Backend je vrnil neveljaven seznam servisnih poročil.')
+        }
+
+        setReports(result.reports)
+        setReportsState('loaded')
+      } catch (error) {
+        if (controller.signal.aborted) {
+          return
+        }
+
+        console.error('Service report list request failed:', error)
+        setReportsError(
+          error instanceof Error
+            ? error.message
+            : 'Seznama servisnih poročil ni bilo mogoče naložiti.',
+        )
+        setReportsState('error')
+      }
+    }
+
+    void loadAssignedServices()
+    void loadReports()
+
+    return () => controller.abort()
+  }, [employee, dashboardPage])
+
   async function handleLogin(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault()
     setNotice('')
@@ -153,9 +264,77 @@ function App() {
     setEmail('')
     setPassword('')
     setNotice('')
+    setIsCreatingReport(false)
+    setReportFormNotice('')
     setServices([])
     setServicesState('idle')
     setServicesError('')
+    setAssignedServices([])
+    setAssignedServicesState('idle')
+    setAssignedServicesError('')
+    setReports([])
+    setReportsState('idle')
+    setReportsError('')
+  }
+
+  async function handleReportSubmit(event: SubmitEvent<HTMLFormElement>) {
+    event.preventDefault()
+    setReportFormNotice('')
+
+    if (!employee) {
+      setReportFormNotice('Za shranjevanje poročila se najprej prijavi.')
+      return
+    }
+
+    setIsSubmittingReport(true)
+    const form = event.currentTarget
+    const formData = new FormData(form)
+    const reportedAt = String(formData.get('reported_at') ?? '')
+
+    try {
+      const response = await fetch(
+        `/api/employees/${encodeURIComponent(employee.id)}/service-reports`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            id_service: formData.get('id_service'),
+            work_summary: formData.get('work_summary'),
+            findings: formData.get('findings'),
+            recommendations: formData.get('recommendations'),
+            reported_at: reportedAt ? new Date(reportedAt).toISOString() : null,
+          }),
+        },
+      )
+      const result = (await response.json().catch(() => ({}))) as {
+        message?: string
+        report?: ServiceReport
+      }
+
+      if (!response.ok) {
+        throw new Error(result.message ?? 'Servisnega poročila ni bilo mogoče shraniti.')
+      }
+
+      if (!result.report) {
+        throw new Error('Backend ni vrnil shranjenega servisnega poročila.')
+      }
+
+      const savedReport = result.report
+      setReports((currentReports) => [savedReport, ...currentReports])
+      setReportsState('loaded')
+      setIsCreatingReport(false)
+      setReportFormNotice('')
+      form.reset()
+    } catch (error) {
+      console.error('Service report submission failed:', error)
+      setReportFormNotice(
+        error instanceof Error
+          ? error.message
+          : 'Servisnega poročila ni bilo mogoče shraniti.',
+      )
+    } finally {
+      setIsSubmittingReport(false)
+    }
   }
 
   if (employee) {
@@ -189,11 +368,23 @@ function App() {
           </button>
         </header>
         <section className="dashboard-content">
-          <h1>
-            {dashboardPage === 'services'
-              ? `Živjo, ${employee.first_name}!`
-              : 'Servisna poročila'}
-          </h1>
+          {dashboardPage === 'services' ? (
+            <h1>Živjo, {employee.first_name}!</h1>
+          ) : (
+            <div className="reports-page-heading">
+              <h1>Servisna poročila</h1>
+              <button
+                className="create-report-button"
+                type="button"
+                onClick={() => {
+                  setIsCreatingReport(true)
+                  setReportFormNotice('')
+                }}
+              >
+                Ustvari poročilo
+              </button>
+            </div>
+          )}
           <div className="dashboard-placeholder">
             {dashboardPage === 'services' ? (
               <>
@@ -278,9 +469,166 @@ function App() {
               </>
             ) : (
               <>
-                <span className="placeholder-icon" aria-hidden="true">✦</span>
-                <h2>Servisna poročila bodo prikazana tukaj</h2>
-                <p>Pregled in urejanje servisnih poročil bomo dodali v naslednjem koraku.</p>
+                <div className="services-heading">
+                  <div>
+                    <h2>Ustvarjena poročila</h2>
+                    <p>Pregled servisnih poročil.</p>
+                  </div>
+                  {reportsState === 'loaded' && (
+                    <span className="service-count">
+                      {reports.length} {reports.length === 1 ? 'poročilo' : 'poročil'}
+                    </span>
+                  )}
+                </div>
+
+                {reportsState === 'loading' && (
+                  <p className="services-message" role="status">Nalaganje poročil ...</p>
+                )}
+                {reportsState === 'error' && (
+                  <p className="services-message services-error" role="alert">
+                    {reportsError}
+                  </p>
+                )}
+                {reportsState === 'loaded' && reports.length === 0 && (
+                  <p className="services-message report-empty-state">
+                    Trenutno še ni ustvarjenih servisnih poročil.
+                  </p>
+                )}
+                {reportsState === 'loaded' && reports.length > 0 && (
+                  <ul className="report-list">
+                    {reports.map((report) => (
+                      <li className="report-card" key={report.id}>
+                        <div className="service-card-heading">
+                          <div>
+                            <span className="service-type">
+                              {serviceTypeLabels[report.service_type] ?? report.service_type}
+                            </span>
+                            <h3>{report.solar_plant_name}</h3>
+                          </div>
+                          <span className="service-count">{formatDate(report.reported_at)}</span>
+                        </div>
+                        <dl className="service-details">
+                          <div className="report-detail-wide">
+                            <dt>Povzetek dela</dt>
+                            <dd>{report.work_summary}</dd>
+                          </div>
+                          {report.findings && (
+                            <div className="report-detail-wide">
+                              <dt>Ugotovitve</dt>
+                              <dd>{report.findings}</dd>
+                            </div>
+                          )}
+                          {report.recommendations && (
+                            <div className="report-detail-wide">
+                              <dt>Priporočila</dt>
+                              <dd>{report.recommendations}</dd>
+                            </div>
+                          )}
+                        </dl>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+
+                {isCreatingReport && (
+                  <form className="report-form" onSubmit={handleReportSubmit}>
+                    <h3>Novo servisno poročilo</h3>
+                    <div className="report-form-fields">
+                      <div className="field">
+                        <label htmlFor="report-service-id">Servis</label>
+                        <select
+                          id="report-service-id"
+                          name="id_service"
+                          defaultValue=""
+                          required
+                          disabled={assignedServicesState !== 'loaded' || assignedServices.length === 0}
+                        >
+                          <option value="" disabled>
+                            {assignedServicesState === 'loading'
+                              ? 'Nalaganje servisov ...'
+                              : assignedServicesState === 'error'
+                                ? 'Servisov ni bilo mogoče naložiti'
+                                : assignedServices.length === 0
+                                  ? 'Ni dodeljenih servisov'
+                                  : 'Izberi servis'}
+                          </option>
+                          {assignedServices.map((service) => (
+                            <option key={service.id} value={service.id}>
+                              {service.solar_plant_name} —{' '}
+                              {serviceTypeLabels[service.service_type] ?? service.service_type}
+                              {' · '}
+                              {serviceStatusLabels[service.status] ?? service.status}
+                            </option>
+                          ))}
+                        </select>
+                        {assignedServicesState === 'error' && (
+                          <span className="field-hint field-error">{assignedServicesError}</span>
+                        )}
+                        {assignedServicesState === 'loaded' && assignedServices.length === 0 && (
+                          <span className="field-hint">
+                            Poročilo lahko ustvariš, ko ti bo dodeljen servis.
+                          </span>
+                        )}
+                      </div>
+                      <div className="field report-form-wide">
+                        <label htmlFor="report-work-summary">Povzetek dela</label>
+                        <textarea
+                          id="report-work-summary"
+                          name="work_summary"
+                          rows={4}
+                          required
+                        />
+                      </div>
+                      <div className="field report-form-wide">
+                        <label htmlFor="report-findings">Ugotovitve</label>
+                        <textarea id="report-findings" name="findings" rows={3} />
+                      </div>
+                      <div className="field report-form-wide">
+                        <label htmlFor="report-recommendations">Priporočila</label>
+                        <textarea
+                          id="report-recommendations"
+                          name="recommendations"
+                          rows={3}
+                        />
+                      </div>
+                      <div className="field report-form-wide">
+                        <label htmlFor="report-reported-at">Datum in čas poročila</label>
+                        <input
+                          id="report-reported-at"
+                          name="reported_at"
+                          type="datetime-local"
+                        />
+                        <span className="field-hint">
+                          Če polje pustite prazno, se datum določi samodejno.
+                        </span>
+                      </div>
+                    </div>
+                    {reportFormNotice && (
+                      <p className="form-notice" role="status">{reportFormNotice}</p>
+                    )}
+                    <div className="report-form-actions">
+                      <button
+                        className="report-cancel-button"
+                        type="button"
+                        disabled={isSubmittingReport}
+                        onClick={() => {
+                          setIsCreatingReport(false)
+                          setReportFormNotice('')
+                        }}
+                      >
+                        Prekliči
+                      </button>
+                      <button
+                        className="create-report-button"
+                        type="submit"
+                        disabled={isSubmittingReport || assignedServices.length === 0}
+                      >
+                        {isSubmittingReport ? 'Shranjevanje ...' : 'Shrani poročilo'}
+                      </button>
+                    </div>
+                  </form>
+                )}
+
               </>
             )}
           </div>
