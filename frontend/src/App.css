@@ -489,6 +489,28 @@
   font-size: 17px;
 }
 
+.report-card-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 12px;
+}
+
+.report-edit-button {
+  padding: 7px 12px;
+  border: 1px solid #dfe6e0;
+  border-radius: 7px;
+  background: #fff;
+  color: #1e634e;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.report-edit-button:hover {
+  background: #f0f7f1;
+}
+
 .report-detail-wide {
   grid-column: 1 / -1;
 }

@@ -64,6 +64,12 @@ function formatDate(value: string | null) {
   }).format(new Date(value))
 }
 
+function toDateTimeLocal(value: string) {
+  const date = new Date(value)
+  date.setMinutes(date.getMinutes() - date.getTimezoneOffset())
+  return date.toISOString().slice(0, 16)
+}
+
 function App() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -81,6 +87,7 @@ function App() {
   const [reportsState, setReportsState] = useState<'idle' | 'loading' | 'loaded' | 'error'>('idle')
   const [reportsError, setReportsError] = useState('')
   const [isCreatingReport, setIsCreatingReport] = useState(false)
+  const [editingReport, setEditingReport] = useState<ServiceReport | null>(null)
   const [reportFormNotice, setReportFormNotice] = useState('')
   const [isSubmittingReport, setIsSubmittingReport] = useState(false)
 
@@ -265,6 +272,7 @@ function App() {
     setPassword('')
     setNotice('')
     setIsCreatingReport(false)
+    setEditingReport(null)
     setReportFormNotice('')
     setServices([])
     setServicesState('idle')
@@ -292,13 +300,17 @@ function App() {
     const reportedAt = String(formData.get('reported_at') ?? '')
 
     try {
+      const reportPath =
+        `/api/employees/${encodeURIComponent(employee.id)}/service-reports`
       const response = await fetch(
-        `/api/employees/${encodeURIComponent(employee.id)}/service-reports`,
+        editingReport
+          ? `${reportPath}/${encodeURIComponent(editingReport.id)}`
+          : reportPath,
         {
-          method: 'POST',
+          method: editingReport ? 'PUT' : 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            id_service: formData.get('id_service'),
+            ...(!editingReport && { id_service: formData.get('id_service') }),
             work_summary: formData.get('work_summary'),
             findings: formData.get('findings'),
             recommendations: formData.get('recommendations'),
@@ -320,9 +332,18 @@ function App() {
       }
 
       const savedReport = result.report
-      setReports((currentReports) => [savedReport, ...currentReports])
+      setReports((currentReports) =>
+        editingReport
+          ? currentReports
+              .map((report) => (report.id === savedReport.id ? savedReport : report))
+              .sort((left, right) =>
+                new Date(right.reported_at).getTime() - new Date(left.reported_at).getTime(),
+              )
+          : [savedReport, ...currentReports],
+      )
       setReportsState('loaded')
       setIsCreatingReport(false)
+      setEditingReport(null)
       setReportFormNotice('')
       form.reset()
     } catch (error) {
@@ -377,6 +398,7 @@ function App() {
                 className="create-report-button"
                 type="button"
                 onClick={() => {
+                  setEditingReport(null)
                   setIsCreatingReport(true)
                   setReportFormNotice('')
                 }}
@@ -507,6 +529,19 @@ function App() {
                           </div>
                           <span className="service-count">{formatDate(report.reported_at)}</span>
                         </div>
+                        <div className="report-card-actions">
+                          <button
+                            className="report-edit-button"
+                            type="button"
+                            onClick={() => {
+                              setEditingReport(report)
+                              setIsCreatingReport(true)
+                              setReportFormNotice('')
+                            }}
+                          >
+                            Uredi
+                          </button>
+                        </div>
                         <dl className="service-details">
                           <div className="report-detail-wide">
                             <dt>Povzetek dela</dt>
@@ -531,17 +566,25 @@ function App() {
                 )}
 
                 {isCreatingReport && (
-                  <form className="report-form" onSubmit={handleReportSubmit}>
-                    <h3>Novo servisno poročilo</h3>
+                  <form
+                    className="report-form"
+                    key={editingReport?.id ?? 'new'}
+                    onSubmit={handleReportSubmit}
+                  >
+                    <h3>{editingReport ? 'Uredi servisno poročilo' : 'Novo servisno poročilo'}</h3>
                     <div className="report-form-fields">
                       <div className="field">
                         <label htmlFor="report-service-id">Servis</label>
                         <select
                           id="report-service-id"
                           name="id_service"
-                          defaultValue=""
+                          defaultValue={editingReport?.id_service ?? ''}
                           required
-                          disabled={assignedServicesState !== 'loaded' || assignedServices.length === 0}
+                          disabled={
+                            editingReport !== null ||
+                            assignedServicesState !== 'loaded' ||
+                            assignedServices.length === 0
+                          }
                         >
                           <option value="" disabled>
                             {assignedServicesState === 'loading'
@@ -576,12 +619,18 @@ function App() {
                           id="report-work-summary"
                           name="work_summary"
                           rows={4}
+                          defaultValue={editingReport?.work_summary ?? ''}
                           required
                         />
                       </div>
                       <div className="field report-form-wide">
                         <label htmlFor="report-findings">Ugotovitve</label>
-                        <textarea id="report-findings" name="findings" rows={3} />
+                        <textarea
+                          id="report-findings"
+                          name="findings"
+                          rows={3}
+                          defaultValue={editingReport?.findings ?? ''}
+                        />
                       </div>
                       <div className="field report-form-wide">
                         <label htmlFor="report-recommendations">Priporočila</label>
@@ -589,6 +638,7 @@ function App() {
                           id="report-recommendations"
                           name="recommendations"
                           rows={3}
+                          defaultValue={editingReport?.recommendations ?? ''}
                         />
                       </div>
                       <div className="field report-form-wide">
@@ -597,6 +647,9 @@ function App() {
                           id="report-reported-at"
                           name="reported_at"
                           type="datetime-local"
+                          defaultValue={
+                            editingReport ? toDateTimeLocal(editingReport.reported_at) : ''
+                          }
                         />
                         <span className="field-hint">
                           Če polje pustite prazno, se datum določi samodejno.
@@ -613,6 +666,7 @@ function App() {
                         disabled={isSubmittingReport}
                         onClick={() => {
                           setIsCreatingReport(false)
+                          setEditingReport(null)
                           setReportFormNotice('')
                         }}
                       >
@@ -621,9 +675,16 @@ function App() {
                       <button
                         className="create-report-button"
                         type="submit"
-                        disabled={isSubmittingReport || assignedServices.length === 0}
+                        disabled={
+                          isSubmittingReport ||
+                          (!editingReport && assignedServices.length === 0)
+                        }
                       >
-                        {isSubmittingReport ? 'Shranjevanje ...' : 'Shrani poročilo'}
+                        {isSubmittingReport
+                          ? 'Shranjevanje ...'
+                          : editingReport
+                            ? 'Shrani spremembe'
+                            : 'Shrani poročilo'}
                       </button>
                     </div>
                   </form>

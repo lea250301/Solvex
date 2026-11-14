@@ -184,6 +184,76 @@ app.post("/employees/:employeeId/service-reports", async (request, response) => 
         });
     }
 });
+app.put("/employees/:employeeId/service-reports/:reportId", async (request, response) => {
+    const { employeeId, reportId } = request.params;
+    const body = (request.body ?? {});
+    const workSummary = typeof body.work_summary === "string" ? body.work_summary.trim() : "";
+    const findings = typeof body.findings === "string" ? body.findings.trim() || null : null;
+    const recommendations = typeof body.recommendations === "string"
+        ? body.recommendations.trim() || null
+        : null;
+    const reportedAt = typeof body.reported_at === "string" && body.reported_at.trim()
+        ? new Date(body.reported_at)
+        : null;
+    if (!/^\d+$/.test(employeeId) || /^0+$/.test(employeeId)) {
+        return response.status(400).json({ message: "ID zaposlenega ni veljaven." });
+    }
+    if (!/^\d+$/.test(reportId) || /^0+$/.test(reportId)) {
+        return response.status(400).json({ message: "ID poročila ni veljaven." });
+    }
+    if (!workSummary) {
+        return response.status(400).json({ message: "Povzetek dela je obvezen." });
+    }
+    if (reportedAt && Number.isNaN(reportedAt.getTime())) {
+        return response.status(400).json({ message: "Datum poročila ni veljaven." });
+    }
+    try {
+        const result = await pool.query(`WITH updated_report AS (
+          UPDATE service_reports
+          SET
+            work_summary = $3,
+            findings = $4,
+            recommendations = $5,
+            reported_at = COALESCE($6::timestamptz, reported_at)
+          WHERE id = $1 AND id_employee = $2
+          RETURNING id, id_service, work_summary, findings, recommendations, reported_at
+        )
+        SELECT
+          ur.id,
+          ur.id_service,
+          s.service_type,
+          sp.name AS solar_plant_name,
+          ur.work_summary,
+          ur.findings,
+          ur.recommendations,
+          ur.reported_at
+        FROM updated_report ur
+        JOIN services s ON s.id = ur.id_service
+        JOIN solar_plants sp ON sp.id_solar_plants = s.id_solar_plant`, [
+            reportId,
+            employeeId,
+            workSummary,
+            findings,
+            recommendations,
+            reportedAt?.toISOString() ?? null,
+        ]);
+        if (result.rowCount === 0) {
+            return response.status(404).json({
+                message: "Servisno poročilo ni bilo najdeno.",
+            });
+        }
+        return response.status(200).json({
+            message: "Servisno poročilo je posodobljeno.",
+            report: result.rows[0],
+        });
+    }
+    catch (error) {
+        console.error("Service report update failed:", error);
+        return response.status(500).json({
+            message: "Servisnega poročila ni bilo mogoče posodobiti.",
+        });
+    }
+});
 app.post("/employees/login", async (request, response) => {
     const body = (request.body ?? {});
     const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
