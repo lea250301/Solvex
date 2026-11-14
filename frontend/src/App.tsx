@@ -81,6 +81,8 @@ function App() {
   const [services, setServices] = useState<Service[]>([])
   const [servicesState, setServicesState] = useState<'idle' | 'loading' | 'loaded' | 'error'>('idle')
   const [servicesError, setServicesError] = useState('')
+  const [pinnedServiceIds, setPinnedServiceIds] = useState<Set<string>>(() => new Set())
+  const [servicePinNotice, setServicePinNotice] = useState('')
   const [expandedServiceIds, setExpandedServiceIds] = useState<Set<string>>(() => new Set())
   const [assignedServices, setAssignedServices] = useState<Service[]>([])
   const [assignedServicesState, setAssignedServicesState] = useState<'idle' | 'loading' | 'loaded' | 'error'>('idle')
@@ -238,6 +240,7 @@ function App() {
   async function handleLogin(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault()
     setNotice('')
+    setServicePinNotice('')
     setIsSubmitting(true)
 
     try {
@@ -261,6 +264,25 @@ function App() {
         return
       }
 
+      let parsedPinnedServices: unknown = []
+      try {
+        const pinnedServices = window.localStorage.getItem(
+          `solvex:pinned-services:${result.employee.id}`,
+        )
+        parsedPinnedServices = pinnedServices ? JSON.parse(pinnedServices) : []
+        setServicePinNotice('')
+      } catch (error) {
+        console.error('Pinned services could not be loaded:', error)
+        setServicePinNotice('Pripeti servisi se ne morejo naložiti iz brskalnika.')
+      }
+
+      setPinnedServiceIds(
+        new Set(
+          Array.isArray(parsedPinnedServices)
+            ? parsedPinnedServices.filter((id): id is string => typeof id === 'string')
+            : [],
+        ),
+      )
       setEmployee(result.employee)
       setPassword('')
     } catch {
@@ -281,6 +303,8 @@ function App() {
     setServices([])
     setServicesState('idle')
     setServicesError('')
+    setPinnedServiceIds(new Set())
+    setServicePinNotice('')
     setExpandedServiceIds(new Set())
     setAssignedServices([])
     setAssignedServicesState('idle')
@@ -288,6 +312,32 @@ function App() {
     setReports([])
     setReportsState('idle')
     setReportsError('')
+  }
+
+  function toggleServicePin(serviceId: string) {
+    if (!employee) {
+      return
+    }
+
+    const nextPinnedServiceIds = new Set(pinnedServiceIds)
+
+    if (nextPinnedServiceIds.has(serviceId)) {
+      nextPinnedServiceIds.delete(serviceId)
+    } else {
+      nextPinnedServiceIds.add(serviceId)
+    }
+
+    setPinnedServiceIds(nextPinnedServiceIds)
+    try {
+      window.localStorage.setItem(
+        `solvex:pinned-services:${employee.id}`,
+        JSON.stringify([...nextPinnedServiceIds]),
+      )
+      setServicePinNotice('')
+    } catch (error) {
+      console.error('Pinned services could not be saved:', error)
+      setServicePinNotice('Sprememba pripetih servisov se ne more shraniti v brskalnik.')
+    }
   }
 
   async function handleReportSubmit(event: SubmitEvent<HTMLFormElement>) {
@@ -484,12 +534,23 @@ function App() {
                     {servicesError}
                   </p>
                 )}
+                {servicePinNotice && (
+                  <p className="services-message services-error" role="status">
+                    {servicePinNotice}
+                  </p>
+                )}
                 {servicesState === 'loaded' && services.length === 0 && (
                   <p className="services-message">V bazi še ni ustvarjenih servisov.</p>
                 )}
                 {servicesState === 'loaded' && services.length > 0 && (
                   <ul className="service-list">
-                    {services.map((service) => (
+                    {[...services]
+                      .sort(
+                        (first, second) =>
+                          Number(pinnedServiceIds.has(second.id)) -
+                          Number(pinnedServiceIds.has(first.id)),
+                      )
+                      .map((service) => (
                       <li className="service-card" key={service.id}>
                         <div className="service-card-heading">
                           <div>
@@ -498,27 +559,37 @@ function App() {
                             </span>
                             <h3>{service.solar_plant_name}</h3>
                           </div>
-                          <button
-                            className="service-details-button"
-                            type="button"
-                            aria-expanded={expandedServiceIds.has(service.id)}
-                            aria-controls={`service-details-${service.id}`}
-                            onClick={() => {
-                              setExpandedServiceIds((currentIds) => {
-                                const nextIds = new Set(currentIds)
+                          <div className="service-card-actions">
+                            <button
+                              className={`service-pin-button${pinnedServiceIds.has(service.id) ? ' pinned' : ''}`}
+                              type="button"
+                              aria-pressed={pinnedServiceIds.has(service.id)}
+                              onClick={() => toggleServicePin(service.id)}
+                            >
+                              {pinnedServiceIds.has(service.id) ? 'Odpni' : 'Pripni'}
+                            </button>
+                            <button
+                              className="service-details-button"
+                              type="button"
+                              aria-expanded={expandedServiceIds.has(service.id)}
+                              aria-controls={`service-details-${service.id}`}
+                              onClick={() => {
+                                setExpandedServiceIds((currentIds) => {
+                                  const nextIds = new Set(currentIds)
 
-                                if (nextIds.has(service.id)) {
-                                  nextIds.delete(service.id)
-                                } else {
-                                  nextIds.add(service.id)
-                                }
+                                  if (nextIds.has(service.id)) {
+                                    nextIds.delete(service.id)
+                                  } else {
+                                    nextIds.add(service.id)
+                                  }
 
-                                return nextIds
-                              })
-                            }}
-                          >
-                            {expandedServiceIds.has(service.id) ? 'Skrij podrobnosti' : 'Podrobnosti'}
-                          </button>
+                                  return nextIds
+                                })
+                              }}
+                            >
+                              {expandedServiceIds.has(service.id) ? 'Skrij podrobnosti' : 'Podrobnosti'}
+                            </button>
+                          </div>
                         </div>
                         {expandedServiceIds.has(service.id) && (
                         <dl className="service-details" id={`service-details-${service.id}`}>
