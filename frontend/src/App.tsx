@@ -35,6 +35,7 @@ type ServiceReport = {
   findings: string | null
   recommendations: string | null
   reported_at: string
+  submitted_at: string | null
 }
 
 type DashboardPage = 'services' | 'reports'
@@ -80,6 +81,7 @@ function App() {
   const [services, setServices] = useState<Service[]>([])
   const [servicesState, setServicesState] = useState<'idle' | 'loading' | 'loaded' | 'error'>('idle')
   const [servicesError, setServicesError] = useState('')
+  const [expandedServiceIds, setExpandedServiceIds] = useState<Set<string>>(() => new Set())
   const [assignedServices, setAssignedServices] = useState<Service[]>([])
   const [assignedServicesState, setAssignedServicesState] = useState<'idle' | 'loading' | 'loaded' | 'error'>('idle')
   const [assignedServicesError, setAssignedServicesError] = useState('')
@@ -90,6 +92,8 @@ function App() {
   const [editingReport, setEditingReport] = useState<ServiceReport | null>(null)
   const [reportFormNotice, setReportFormNotice] = useState('')
   const [isSubmittingReport, setIsSubmittingReport] = useState(false)
+  const [reportActionNotice, setReportActionNotice] = useState('')
+  const [submittingReportId, setSubmittingReportId] = useState<string | null>(null)
 
   useEffect(() => {
     if (!employee || dashboardPage !== 'services') {
@@ -277,6 +281,7 @@ function App() {
     setServices([])
     setServicesState('idle')
     setServicesError('')
+    setExpandedServiceIds(new Set())
     setAssignedServices([])
     setAssignedServicesState('idle')
     setAssignedServicesError('')
@@ -355,6 +360,55 @@ function App() {
       )
     } finally {
       setIsSubmittingReport(false)
+    }
+  }
+
+  async function handleReportSubmission(report: ServiceReport) {
+    if (!employee) {
+      setReportActionNotice('Za oddajo poročila se najprej prijavi.')
+      return
+    }
+
+    setReportActionNotice('')
+    setSubmittingReportId(report.id)
+
+    try {
+      const response = await fetch(
+        `/api/employees/${encodeURIComponent(employee.id)}/service-reports/${encodeURIComponent(report.id)}/submit`,
+        { method: 'POST' },
+      )
+      const result = (await response.json().catch(() => ({}))) as {
+        message?: string
+        report?: ServiceReport
+      }
+
+      if (!response.ok) {
+        throw new Error(result.message ?? 'Poročila ni bilo mogoče oddati.')
+      }
+
+      if (!result.report) {
+        throw new Error('Backend ni vrnil oddanega poročila.')
+      }
+
+      const submittedReport = result.report
+      setReports((currentReports) =>
+        currentReports.map((item) =>
+          item.id === submittedReport.id ? submittedReport : item,
+        ),
+      )
+
+      if (editingReport?.id === submittedReport.id) {
+        setEditingReport(null)
+        setIsCreatingReport(false)
+        setReportFormNotice('')
+      }
+    } catch (error) {
+      console.error('Service report submission failed:', error)
+      setReportActionNotice(
+        error instanceof Error ? error.message : 'Poročila ni bilo mogoče oddati.',
+      )
+    } finally {
+      setSubmittingReportId(null)
     }
   }
 
@@ -444,11 +498,34 @@ function App() {
                             </span>
                             <h3>{service.solar_plant_name}</h3>
                           </div>
-                          <span className={`service-status status-${service.status}`}>
-                            {serviceStatusLabels[service.status] ?? service.status}
-                          </span>
+                          <button
+                            className="service-details-button"
+                            type="button"
+                            aria-expanded={expandedServiceIds.has(service.id)}
+                            aria-controls={`service-details-${service.id}`}
+                            onClick={() => {
+                              setExpandedServiceIds((currentIds) => {
+                                const nextIds = new Set(currentIds)
+
+                                if (nextIds.has(service.id)) {
+                                  nextIds.delete(service.id)
+                                } else {
+                                  nextIds.add(service.id)
+                                }
+
+                                return nextIds
+                              })
+                            }}
+                          >
+                            {expandedServiceIds.has(service.id) ? 'Skrij podrobnosti' : 'Podrobnosti'}
+                          </button>
                         </div>
-                        <dl className="service-details">
+                        {expandedServiceIds.has(service.id) && (
+                        <dl className="service-details" id={`service-details-${service.id}`}>
+                          <div>
+                            <dt>Stanje</dt>
+                            <dd>{serviceStatusLabels[service.status] ?? service.status}</dd>
+                          </div>
                           <div>
                             <dt>Stranka</dt>
                             <dd>{service.customer_first_name} {service.customer_last_name}</dd>
@@ -484,6 +561,7 @@ function App() {
                             </div>
                           )}
                         </dl>
+                        )}
                       </li>
                     ))}
                   </ul>
@@ -530,17 +608,35 @@ function App() {
                           <span className="service-count">{formatDate(report.reported_at)}</span>
                         </div>
                         <div className="report-card-actions">
-                          <button
-                            className="report-edit-button"
-                            type="button"
-                            onClick={() => {
-                              setEditingReport(report)
-                              setIsCreatingReport(true)
-                              setReportFormNotice('')
-                            }}
-                          >
-                            Uredi
-                          </button>
+                          {report.submitted_at ? (
+                            <span className="report-submitted-label">
+                              Oddano {formatDate(report.submitted_at)}
+                            </span>
+                          ) : (
+                            <>
+                              <button
+                                className="report-edit-button"
+                                type="button"
+                                onClick={() => {
+                                  setEditingReport(report)
+                                  setIsCreatingReport(true)
+                                  setReportFormNotice('')
+                                }}
+                              >
+                                Uredi
+                              </button>
+                              <button
+                                className="report-submit-button"
+                                type="button"
+                                disabled={submittingReportId === report.id}
+                                onClick={() => void handleReportSubmission(report)}
+                              >
+                                {submittingReportId === report.id
+                                  ? 'Oddajanje ...'
+                                  : 'Oddaj poročilo'}
+                              </button>
+                            </>
+                          )}
                         </div>
                         <dl className="service-details">
                           <div className="report-detail-wide">
@@ -563,6 +659,11 @@ function App() {
                       </li>
                     ))}
                   </ul>
+                )}
+                {reportActionNotice && (
+                  <p className="services-message services-error" role="alert">
+                    {reportActionNotice}
+                  </p>
                 )}
 
                 {isCreatingReport && (

@@ -491,11 +491,14 @@
 
 .report-card-actions {
   display: flex;
+  align-items: center;
   justify-content: flex-end;
+  gap: 8px;
   margin-top: 12px;
 }
 
-.report-edit-button {
+.report-edit-button,
+.report-submit-button {
   padding: 7px 12px;
   border: 1px solid #dfe6e0;
   border-radius: 7px;
@@ -509,6 +512,27 @@
 
 .report-edit-button:hover {
   background: #f0f7f1;
+}
+
+.report-submit-button {
+  border-color: #1e634e;
+  background: #1e634e;
+  color: #fff;
+}
+
+.report-submit-button:hover:not(:disabled) {
+  background: #174f3e;
+}
+
+.report-submit-button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.report-submitted-label {
+  color: #397457;
+  font-size: 12px;
+  font-weight: 700;
 }
 
 .report-detail-wide {
@@ -645,6 +669,28 @@
   margin: 6px 0 0;
   color: #253b32;
   font-size: 17px;
+}
+
+.service-details-button {
+  padding: 7px 11px;
+  border: 1px solid #dfe6e0;
+  border-radius: 999px;
+  background: #edf5e6;
+  color: #397457;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.service-details-button:hover {
+  background: #e1eed7;
+}
+
+.service-details-button:focus-visible {
+  outline: 3px solid rgb(58 130 104 / 45%);
+  outline-offset: 3px;
 }
 
 .service-status {
