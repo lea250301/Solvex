@@ -671,6 +671,28 @@
   font-size: 17px;
 }
 
+.service-details-button {
+  padding: 7px 11px;
+  border: 1px solid #dfe6e0;
+  border-radius: 999px;
+  background: #edf5e6;
+  color: #397457;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.service-details-button:hover {
+  background: #e1eed7;
+}
+
+.service-details-button:focus-visible {
+  outline: 3px solid rgb(58 130 104 / 45%);
+  outline-offset: 3px;
+}
+
 .service-status {
   padding: 6px 10px;
   border-radius: 999px;

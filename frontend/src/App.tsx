@@ -81,6 +81,7 @@ function App() {
   const [services, setServices] = useState<Service[]>([])
   const [servicesState, setServicesState] = useState<'idle' | 'loading' | 'loaded' | 'error'>('idle')
   const [servicesError, setServicesError] = useState('')
+  const [expandedServiceIds, setExpandedServiceIds] = useState<Set<string>>(() => new Set())
   const [assignedServices, setAssignedServices] = useState<Service[]>([])
   const [assignedServicesState, setAssignedServicesState] = useState<'idle' | 'loading' | 'loaded' | 'error'>('idle')
   const [assignedServicesError, setAssignedServicesError] = useState('')
@@ -280,6 +281,7 @@ function App() {
     setServices([])
     setServicesState('idle')
     setServicesError('')
+    setExpandedServiceIds(new Set())
     setAssignedServices([])
     setAssignedServicesState('idle')
     setAssignedServicesError('')
@@ -496,11 +498,34 @@ function App() {
                             </span>
                             <h3>{service.solar_plant_name}</h3>
                           </div>
-                          <span className={`service-status status-${service.status}`}>
-                            {serviceStatusLabels[service.status] ?? service.status}
-                          </span>
+                          <button
+                            className="service-details-button"
+                            type="button"
+                            aria-expanded={expandedServiceIds.has(service.id)}
+                            aria-controls={`service-details-${service.id}`}
+                            onClick={() => {
+                              setExpandedServiceIds((currentIds) => {
+                                const nextIds = new Set(currentIds)
+
+                                if (nextIds.has(service.id)) {
+                                  nextIds.delete(service.id)
+                                } else {
+                                  nextIds.add(service.id)
+                                }
+
+                                return nextIds
+                              })
+                            }}
+                          >
+                            {expandedServiceIds.has(service.id) ? 'Skrij podrobnosti' : 'Podrobnosti'}
+                          </button>
                         </div>
-                        <dl className="service-details">
+                        {expandedServiceIds.has(service.id) && (
+                        <dl className="service-details" id={`service-details-${service.id}`}>
+                          <div>
+                            <dt>Stanje</dt>
+                            <dd>{serviceStatusLabels[service.status] ?? service.status}</dd>
+                          </div>
                           <div>
                             <dt>Stranka</dt>
                             <dd>{service.customer_first_name} {service.customer_last_name}</dd>
@@ -536,6 +561,7 @@ function App() {
                             </div>
                           )}
                         </dl>
+                        )}
                       </li>
                     ))}
                   </ul>
