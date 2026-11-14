@@ -16,6 +16,41 @@ const pool = new Pool({
 
 app.use(express.json());
 
+app.get("/services", async (_request, response) => {
+  try {
+    const result = await pool.query(
+      `SELECT
+        s.id,
+        s.service_type,
+        s.status,
+        s.scheduled_at,
+        s.completed_at,
+        s.notes,
+        sp.name AS solar_plant_name,
+        sp.installation_address,
+        sp.postal_code,
+        sp.city,
+        c.first_name AS customer_first_name,
+        c.last_name AS customer_last_name,
+        e.first_name AS employee_first_name,
+        e.last_name AS employee_last_name
+      FROM services s
+      JOIN solar_plants sp ON sp.id_solar_plants = s.id_solar_plant
+      JOIN customers c ON c.id = sp.id_customer
+      LEFT JOIN employees e ON e.id = s.id_employee
+      ORDER BY s.scheduled_at NULLS LAST, s.id DESC`,
+    );
+
+    return response.status(200).json({ services: result.rows });
+  } catch (error) {
+    console.error("Service list failed:", error);
+
+    return response.status(500).json({
+      message: "Seznama servisov ni bilo mogoče naložiti.",
+    });
+  }
+});
+
 app.post("/employees/login", async (request, response) => {
   const body = (request.body ?? {}) as Record<string, unknown>;
   const email =
