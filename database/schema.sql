@@ -78,8 +78,12 @@ CREATE TABLE service_reports (
     work_summary TEXT NOT NULL,
     findings TEXT,
     recommendations TEXT,
-    reported_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    reported_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    submitted_at TIMESTAMPTZ
 );
+
+ALTER TABLE service_reports
+    ADD COLUMN IF NOT EXISTS submitted_at TIMESTAMPTZ;
 
 CREATE TABLE service_requests (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -98,4 +102,3 @@ CREATE TABLE service_requests (
     ),
     UNIQUE (id, id_solar_plant)
 );
-

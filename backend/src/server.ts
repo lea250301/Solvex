@@ -111,7 +111,8 @@ app.get("/employees/:employeeId/service-reports", async (request, response) => {
         sr.work_summary,
         sr.findings,
         sr.recommendations,
-        sr.reported_at
+        sr.reported_at,
+        sr.submitted_at
       FROM service_reports sr
       JOIN services s ON s.id = sr.id_service
       JOIN solar_plants sp ON sp.id_solar_plants = s.id_solar_plant
@@ -174,7 +175,8 @@ app.post("/employees/:employeeId/service-reports", async (request, response) => 
         SELECT $1, $2, $3, $4, $5, COALESCE($6::timestamptz, NOW())
         FROM services s
         WHERE s.id = $1 AND s.id_employee = $2
-        RETURNING id, id_service, work_summary, findings, recommendations, reported_at
+        RETURNING id, id_service, work_summary, findings, recommendations, reported_at,
+          submitted_at
       )
       SELECT
         ir.id,
@@ -184,7 +186,8 @@ app.post("/employees/:employeeId/service-reports", async (request, response) => 
         ir.work_summary,
         ir.findings,
         ir.recommendations,
-        ir.reported_at
+        ir.reported_at,
+        ir.submitted_at
       FROM inserted_report ir
       JOIN services s ON s.id = ir.id_service
       JOIN solar_plants sp ON sp.id_solar_plants = s.id_solar_plant`,
@@ -266,8 +269,9 @@ app.put(
             findings = $4,
             recommendations = $5,
             reported_at = COALESCE($6::timestamptz, reported_at)
-          WHERE id = $1 AND id_employee = $2
-          RETURNING id, id_service, work_summary, findings, recommendations, reported_at
+          WHERE id = $1 AND id_employee = $2 AND submitted_at IS NULL
+          RETURNING id, id_service, work_summary, findings, recommendations, reported_at,
+            submitted_at
         )
         SELECT
           ur.id,
@@ -277,7 +281,8 @@ app.put(
           ur.work_summary,
           ur.findings,
           ur.recommendations,
-          ur.reported_at
+          ur.reported_at,
+          ur.submitted_at
         FROM updated_report ur
         JOIN services s ON s.id = ur.id_service
         JOIN solar_plants sp ON sp.id_solar_plants = s.id_solar_plant`,
@@ -292,6 +297,19 @@ app.put(
       );
 
       if (result.rowCount === 0) {
+        const existingReport = await pool.query(
+          `SELECT submitted_at
+          FROM service_reports
+          WHERE id = $1 AND id_employee = $2`,
+          [reportId, employeeId],
+        );
+
+        if (existingReport.rows[0]?.submitted_at) {
+          return response.status(409).json({
+            message: "Oddanega servisnega poročila ni več mogoče urejati.",
+          });
+        }
+
         return response.status(404).json({
           message: "Servisno poročilo ni bilo najdeno.",
         });
@@ -306,6 +324,77 @@ app.put(
 
       return response.status(500).json({
         message: "Servisnega poročila ni bilo mogoče posodobiti.",
+      });
+    }
+  },
+);
+
+app.post(
+  "/employees/:employeeId/service-reports/:reportId/submit",
+  async (request, response) => {
+    const { employeeId, reportId } = request.params;
+
+    if (!/^\d+$/.test(employeeId) || /^0+$/.test(employeeId)) {
+      return response.status(400).json({ message: "ID zaposlenega ni veljaven." });
+    }
+
+    if (!/^\d+$/.test(reportId) || /^0+$/.test(reportId)) {
+      return response.status(400).json({ message: "ID poročila ni veljaven." });
+    }
+
+    try {
+      const result = await pool.query(
+        `WITH submitted_report AS (
+          UPDATE service_reports
+          SET submitted_at = NOW()
+          WHERE id = $1 AND id_employee = $2 AND submitted_at IS NULL
+          RETURNING id, id_service, work_summary, findings, recommendations, reported_at,
+            submitted_at
+        )
+        SELECT
+          sr.id,
+          sr.id_service,
+          s.service_type,
+          sp.name AS solar_plant_name,
+          sr.work_summary,
+          sr.findings,
+          sr.recommendations,
+          sr.reported_at,
+          sr.submitted_at
+        FROM submitted_report sr
+        JOIN services s ON s.id = sr.id_service
+        JOIN solar_plants sp ON sp.id_solar_plants = s.id_solar_plant`,
+        [reportId, employeeId],
+      );
+
+      if (result.rowCount === 0) {
+        const existingReport = await pool.query(
+          `SELECT submitted_at
+          FROM service_reports
+          WHERE id = $1 AND id_employee = $2`,
+          [reportId, employeeId],
+        );
+
+        if (!existingReport.rows[0]) {
+          return response.status(404).json({
+            message: "Servisno poročilo ni bilo najdeno.",
+          });
+        }
+
+        return response.status(409).json({
+          message: "Servisno poročilo je že oddano.",
+        });
+      }
+
+      return response.status(200).json({
+        message: "Servisno poročilo je oddano in zaklenjeno za urejanje.",
+        report: result.rows[0],
+      });
+    } catch (error) {
+      console.error("Service report submission failed:", error);
+
+      return response.status(500).json({
+        message: "Servisnega poročila ni bilo mogoče oddati.",
       });
     }
   },
