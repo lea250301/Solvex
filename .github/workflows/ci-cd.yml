@@ -1,0 +1,240 @@
+name: CI/CD
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: |
+            frontend/package-lock.json
+            backend/package-lock.json
+      - run: npm ci --prefix frontend
+      - run: npm ci --prefix backend
+      - run: npm run lint --prefix frontend
+      - run: npm run lint --prefix backend
+
+  build:
+    name: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      VITE_API_URL: /api
+      BACKEND_ORIGIN: ${{ vars.BACKEND_ORIGIN }}
+      SOURCE_SHA: ${{ github.sha }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: |
+            frontend/package-lock.json
+            backend/package-lock.json
+      - run: npm ci --prefix frontend
+      - run: npm ci --prefix backend
+      - run: npm run build --prefix frontend
+      - run: npm run build --prefix backend
+      - name: Prepare Vercel frontend without rebuilding
+        run: npm run prepare:vercel --prefix frontend
+      - uses: actions/upload-artifact@v4
+        with:
+          name: vercel-frontend
+          path: frontend/.vercel/output/
+          include-hidden-files: true
+          retention-days: 7
+          if-no-files-found: error
+      - name: Package compiled application
+        run: |
+          mkdir -p release/backend release/frontend release/database
+          cp -R frontend/dist release/frontend/
+          cp -R backend/dist backend/scripts release/backend/
+          cp backend/package.json backend/package-lock.json release/backend/
+          cp database/schema.sql release/database/
+          printf '{"sourceRevision":"%s"}\n' "$SOURCE_SHA" > release/release.json
+          printf '# Generated deployment artifact\n\nSource commit: %s\n' "$SOURCE_SHA" > release/README.md
+          tar -czf application-build.tar.gz -C release .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: application-build
+          path: application-build.tar.gz
+          retention-days: 7
+          if-no-files-found: error
+
+  test:
+    name: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_DB: solvex_ci
+          POSTGRES_USER: solvex
+          POSTGRES_PASSWORD: ci_only_password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U solvex -d solvex_ci"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DB_HOST: localhost
+      DB_PORT: 5432
+      DB_NAME: solvex_ci
+      DB_USER: solvex
+      DB_PASSWORD: ci_only_password
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: |
+            frontend/package-lock.json
+            backend/package-lock.json
+      - run: npm ci --prefix frontend
+      - run: npm ci --prefix backend
+      - name: Verify repeatable database initialization
+        run: |
+          npm run db:migrate --prefix backend
+          npm run db:migrate --prefix backend
+      - name: Backend tests and coverage
+        run: npm run test:coverage --prefix backend
+      - name: Frontend tests and coverage
+        if: success() || failure()
+        run: npm run test:coverage --prefix frontend
+      - name: Save coverage reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-reports
+          path: |
+            frontend/coverage/
+            backend/coverage/
+          retention-days: 7
+          if-no-files-found: error
+
+  deploy:
+    name: deploy
+    needs: [lint, build, test]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
+    environment:
+      name: production
+      url: ${{ vars.VERCEL_APP_URL || vars.RENDER_APP_URL }}
+    env:
+      RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+      RENDER_SERVICE_ID: ${{ vars.RENDER_SERVICE_ID }}
+      APP_URL: ${{ vars.RENDER_APP_URL }}
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
+      VERCEL_APP_URL: ${{ vars.VERCEL_APP_URL }}
+      SOURCE_SHA: ${{ github.sha }}
+    steps:
+      - name: Check production environment configuration
+        run: |
+          if [[ -z "$RENDER_API_KEY" || -z "$RENDER_SERVICE_ID" || -z "$APP_URL" || -z "$VERCEL_TOKEN" || -z "$VERCEL_ORG_ID" || -z "$VERCEL_PROJECT_ID" || -z "$VERCEL_APP_URL" ]]; then
+            echo "::error::Configure Render and Vercel secrets/variables in production. See docs/08-ci-cd.md and docs/10-vercel-frontend.md."
+            exit 1
+          fi
+      - uses: actions/download-artifact@v4
+        with:
+          name: application-build
+          path: ${{ runner.temp }}/solvex-artifact
+      - name: Extract and verify the build artifact
+        run: |
+          mkdir -p "$RUNNER_TEMP/solvex-release"
+          tar -xzf "$RUNNER_TEMP/solvex-artifact/application-build.tar.gz" -C "$RUNNER_TEMP/solvex-release"
+          jq -e --arg sha "$SOURCE_SHA" '.sourceRevision == $sha' "$RUNNER_TEMP/solvex-release/release.json"
+      - uses: actions/checkout@v6
+        with:
+          ref: deployment
+          path: deployment
+          fetch-depth: 1
+      - name: Publish compiled files to the deployment branch
+        id: release
+        run: |
+          rsync -a --delete --exclude=.git "$RUNNER_TEMP/solvex-release/" deployment/
+          cd deployment
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          if ! git diff --cached --quiet; then
+            git commit -m "Deploy compiled application from $SOURCE_SHA [skip ci]"
+            git push origin HEAD:deployment
+          fi
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+      - name: Deploy the artifact without rebuilding the application
+        env:
+          RELEASE_SHA: ${{ steps.release.outputs.sha }}
+        run: |
+          jq -n --arg commit "$RELEASE_SHA" '{commitId: $commit}' > /tmp/render-deploy.json
+          curl --fail --silent --show-error --max-time 60 --request POST \
+            "https://api.render.com/v1/services/${RENDER_SERVICE_ID}/deploys" \
+            --header "Authorization: Bearer $RENDER_API_KEY" \
+            --header 'Content-Type: application/json' \
+            --data-binary @/tmp/render-deploy.json --output /tmp/render-deploy-result.json
+      - name: Verify public application and deployed revision
+        run: |
+          for attempt in $(seq 1 60); do
+            if curl --fail --silent --max-time 15 "${APP_URL%/}/api/health" > /tmp/health.json; then
+              if jq -e --arg sha "$SOURCE_SHA" \
+                '.status == "ok" and .database == "connected" and .revision == $sha' /tmp/health.json > /dev/null; then
+                curl --fail --silent --show-error --max-time 60 "$APP_URL" --output /tmp/home.html
+                grep -q '<div id="root"' /tmp/home.html
+                echo "Deployment verified: $SOURCE_SHA"
+                exit 0
+              fi
+            fi
+            sleep 15
+          done
+          echo "::error::The compiled application did not become healthy before the timeout."
+          exit 1
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - uses: actions/download-artifact@v4
+        with:
+          name: vercel-frontend
+          path: ${{ runner.temp }}/solvex-vercel/.vercel/output
+      - name: Link the Vercel deployment artifact
+        run: |
+          jq -n --arg org "$VERCEL_ORG_ID" --arg project "$VERCEL_PROJECT_ID" \
+            '{orgId: $org, projectId: $project}' > "$RUNNER_TEMP/solvex-vercel/.vercel/project.json"
+      - name: Publish the prebuilt frontend to Vercel Hobby
+        run: |
+          npm exec --yes --package vercel@65.16.0 -- vercel deploy --prebuilt --prod --yes \
+            --cwd "$RUNNER_TEMP/solvex-vercel" --token "$VERCEL_TOKEN"
+      - name: Verify the public frontend and its API connection
+        run: |
+          curl --fail --silent --show-error --max-time 60 "$VERCEL_APP_URL" --output /tmp/vercel-home.html
+          grep -q '<div id="root"' /tmp/vercel-home.html
+          curl --fail --silent --show-error --retry 3 --max-time 60 \
+            "${VERCEL_APP_URL%/}/api/health" --output /tmp/vercel-health.json
+          jq -e --arg sha "$SOURCE_SHA" \
+            '.status == "ok" and .database == "connected" and .revision == $sha' /tmp/vercel-health.json

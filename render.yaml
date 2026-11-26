@@ -1,0 +1,50 @@
+# Only Free compute plans. The database expires after 30 days; never upgrade automatically.
+services:
+  - type: web
+    name: solvex-api-sarschi03
+    runtime: node
+    plan: free
+    region: frankfurt
+    repo: https://github.com/Sarschi03/Solvex
+    branch: deployment
+    autoDeployTrigger: off
+    # The build job already compiled both applications. Install runtime deps only.
+    buildCommand: npm ci --prefix backend --omit=dev
+    startCommand: node backend/scripts/start-production.mjs
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: 24.14.0
+      - key: NODE_ENV
+        value: production
+      - key: SERVE_FRONTEND
+        value: "true"
+      - key: DB_HOST
+        fromDatabase:
+          name: solvex-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: solvex-db
+          property: port
+      - key: DB_NAME
+        fromDatabase:
+          name: solvex-db
+          property: database
+      - key: DB_USER
+        fromDatabase:
+          name: solvex-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: solvex-db
+          property: password
+
+databases:
+  - name: solvex-db
+    plan: free
+    region: frankfurt
+    postgresMajorVersion: "18"
+    databaseName: solvex
+    user: solvex
+    ipAllowList: []

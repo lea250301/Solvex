@@ -1,0 +1,13 @@
+.manager-content > p { color: #777e70; }
+.manager-metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-top: 30px; }
+.manager-metrics article, .manager-records article { padding: 24px; border: 1px solid #edf0e8; border-radius: 20px; background: #fff; }
+.manager-metrics article:nth-child(2) { background: var(--accent-green); border-color: transparent; }
+.manager-metrics article:nth-child(3) { background: var(--accent-black); color: #fff; border-color: transparent; }
+.manager-metrics span { display: block; font-size: 13px; }
+.manager-metrics strong { display: block; margin-top: 16px; font-size: 36px; font-weight: 500; }
+.manager-records { display: grid; gap: 16px; margin-top: 24px; }
+.manager-records h2 { font-size: 18px; font-weight: 500; }
+.manager-records h3 { margin: 18px 0 6px; font-size: 13px; }
+.manager-records p { margin: 8px 0 0; color: #666e60; font-size: 14px; white-space: pre-wrap; overflow-wrap: anywhere; }
+@media (max-width: 900px) { .manager-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 520px) { .manager-metrics { grid-template-columns: 1fr; } }

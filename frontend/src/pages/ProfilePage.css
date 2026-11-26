@@ -1,0 +1,44 @@
+.profile-page { width: min(100%, 1200px); margin: 0 auto; padding: 20px 40px 48px; color: var(--accent-black); }
+.profile-page h1 { margin: 0 0 32px; font-size: clamp(28px, 3vw, 38px); font-weight: 500; letter-spacing: -1px; }
+.profile-page h2 { margin: 0; font-size: 22px; font-weight: 500; letter-spacing: -0.5px; }
+.profile-identity { display: flex; align-items: center; gap: 28px; margin-bottom: 32px; }
+.profile-photo { width: 104px; height: 104px; flex-shrink: 0; border-radius: 50%; object-fit: cover; background: #f5f7f0; }
+.profile-identity-copy > p { margin: 8px 0 16px; color: #7a8470; font-size: 13px; }
+.profile-photo-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 16px; }
+.profile-photo-picker { position: relative; display: inline-flex; align-items: center; min-height: 38px; padding: 0 17px; border-radius: var(--surface-radius); background: var(--accent-green); color: var(--accent-black); font-size: 12px; cursor: pointer; }
+.profile-photo-picker:focus-within { outline: 2px solid #526b36; outline-offset: 3px; }
+.profile-photo-picker.disabled { opacity: 0.6; cursor: wait; }
+.profile-remove-photo { padding: 0; border: 0; background: transparent; color: #6d7863; font-size: 11px; text-decoration: underline dotted; text-underline-offset: 4px; cursor: pointer; }
+.profile-identity-copy > .profile-photo-hint { margin: 10px 0 0; color: #949c8b; font-size: 10px; }
+.profile-status { padding: 12px 16px; border-radius: 12px; background: #f4f8ed; color: #536c39; font-size: 12px; }
+.profile-error { background: #fff4ef; color: #9d4e35; }
+.profile-house-card { margin-top: 32px; padding: 28px; border: 1px solid #e9eee1; border-radius: var(--surface-radius); }
+.profile-section-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.profile-section-heading select { max-width: 200px; padding: 8px 12px; border: 1px solid #e9eee1; border-radius: 12px; background: #fff; font: inherit; font-size: 12px; }
+.profile-house-content { display: grid; grid-template-columns: 1.4fr 1fr; align-items: center; gap: 32px; }
+.solar-house { display: block; width: 100%; height: auto; max-height: 330px; }
+.profile-house-details h3 { margin: 0 0 12px; font-size: 20px; font-weight: 500; }
+.profile-house-details > p { color: #7a8470; font-size: 12px; line-height: 1.7; }
+.profile-house-details dl { display: flex; gap: 28px; margin: 24px 0; }
+.profile-house-details dt { margin-bottom: 8px; color: #8d9682; font-size: 10px; }
+.profile-house-details dd { margin: 0; font-size: 20px; }
+.profile-house-details small { color: #a0a795; font-size: 9px; }
+.profile-service-history { margin-top: 36px; }
+.profile-service-history > p { color: #8b9480; font-size: 12px; }
+.profile-service-history ul { padding: 0; margin: 20px 0 0; list-style: none; }
+.profile-service-history li { display: flex; justify-content: space-between; align-items: center; gap: 20px; padding: 20px 0; border-bottom: 1px solid #eef1e7; }
+.profile-service-history strong { display: block; font-size: 14px; font-weight: 500; }
+.profile-service-history li span { display: block; margin-top: 7px; color: #8b9480; font-size: 11px; }
+.profile-service-history time { color: #6e7d60; font-size: 11px; white-space: nowrap; }
+@media (max-width: 760px) {
+  .profile-page { padding: 16px 20px 32px; }
+  .profile-identity { align-items: flex-start; gap: 18px; }
+  .profile-photo { width: 76px; height: 76px; }
+  .profile-house-card { padding: 20px; }
+  .profile-house-content { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  .profile-section-heading { align-items: flex-start; flex-direction: column; }
+}
+@media (max-width: 480px) {
+  .profile-identity { flex-direction: column; }
+  .profile-page h2 { font-size: 20px; }
+}

@@ -1,0 +1,31 @@
+# Prefix rules supplement the PreToolUse hook and filesystem sandbox.
+# These rules never grant access outside the sandbox.
+prefix_rule(
+    pattern = [["rm", "rmdir", "del", "erase", "Remove-Item"]],
+    decision = "forbidden",
+    justification = "Destructive deletion is blocked. Ask the user to review and remove the specific disposable files.",
+    match = ["rm -rf /", "Remove-Item -Recurse -Force C:/data"],
+)
+prefix_rule(
+    pattern = ["git", "push", ["--force", "--force-with-lease", "-f"]],
+    decision = "forbidden",
+    justification = "Force push rewrites shared history. Use an ordinary branch and pull request.",
+    match = ["git push --force origin main"],
+)
+prefix_rule(
+    pattern = ["git", "push"],
+    decision = "prompt",
+    justification = "Review the destination branch before publishing. The hook rejects force flags anywhere in the command.",
+    match = ["git push origin feature/demo"],
+    not_match = ["git status"],
+)
+prefix_rule(
+    pattern = ["git", "reset", "--hard"],
+    decision = "forbidden",
+    justification = "Hard reset discards work. Inspect git diff and preserve the changes first.",
+)
+prefix_rule(
+    pattern = ["git", "clean"],
+    decision = "forbidden",
+    justification = "git clean can remove untracked work. Ask the user to review the files.",
+)

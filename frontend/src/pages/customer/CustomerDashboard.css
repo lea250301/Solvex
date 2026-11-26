@@ -1,0 +1,79 @@
+.customer-overview {
+  grid-column: 2;
+  grid-row: 2;
+  width: min(100%, 1360px);
+  min-width: 0;
+  margin: 0 auto;
+  padding: 12px 40px 44px;
+  color: var(--accent-black);
+}
+.customer-welcome { margin-bottom: 24px; }
+.customer-welcome h1 { margin: 8px 0 0; font-size: clamp(28px, 2.8vw, 40px); font-weight: 500; letter-spacing: -1.2px; }
+.customer-welcome h1 > span { color: #838b79; font-size: 0.63em; font-weight: 400; letter-spacing: -0.5px; }
+.customer-overview-top { display: grid; grid-template-columns: minmax(0, 1.8fr) minmax(0, 1fr); align-items: stretch; gap: 12px; }
+.customer-hero { position: relative; display: block; height: 460px; overflow: hidden; border-radius: var(--surface-radius); background: #e9eddf; color: #fff; text-decoration: none; }
+.customer-hero > img { width: 100%; height: 100%; object-fit: cover; object-position: center 38%; }
+.customer-hero-caption { position: absolute; inset: auto 0 0; padding: 26px 28px; background: rgb(246 248 240 / 55%); backdrop-filter: blur(8px); }
+.customer-hero h2 { margin: 10px 0 16px; color: var(--accent-black); font-size: clamp(24px, 2.5vw, 34px); font-weight: 450; line-height: 1.15; letter-spacing: -0.7px; }
+.customer-hero-footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; color: var(--accent-black); font-size: 12px; line-height: 1.6; }
+.customer-hero-footer svg { width: 20px; height: 20px; flex-shrink: 0; }
+.customer-quick-links { display: flex; flex-direction: column; min-width: 0; }
+.customer-quick-links h2 { margin: 4px 8px 18px; font-size: 20px; font-weight: 500; letter-spacing: -0.5px; }
+.customer-quick-list { display: grid; flex: 1; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-rows: 1fr; gap: 10px; }
+.customer-quick-link { position: relative; display: flex; flex-direction: column; align-items: flex-start; justify-content: space-between; gap: 20px; min-width: 0; padding: 24px; overflow: hidden; border-radius: var(--surface-radius); color: inherit; text-decoration: none; }
+.customer-quick-link > span:not(.customer-quick-watermark) { position: relative; z-index: 1; }
+.customer-quick-watermark { position: absolute; right: -8px; bottom: 12px; width: 110px; height: 110px; color: #fff; opacity: 0.2; pointer-events: none; }
+.customer-quick-watermark svg { width: 100%; height: 100%; stroke-width: 1; }
+.customer-quick-link-white .customer-quick-watermark { color: #e8eddd; opacity: 0.55; }
+.customer-quick-link-white { grid-column: 1 / -1; border: 1px solid #e7ebdf; background: #fff; }
+.customer-quick-link-green { background: var(--accent-green); }
+.customer-quick-link-black { background: var(--accent-black); color: #fff; }
+.customer-quick-icon { display: grid; place-items: center; width: 24px; height: 24px; flex-shrink: 0; }
+.customer-quick-icon svg { width: 22px; height: 22px; }
+.customer-quick-link:hover { filter: brightness(0.985); }
+.customer-quick-link strong { display: block; font-size: 18px; font-weight: 500; line-height: 1.3; letter-spacing: -0.3px; }
+.customer-quick-link-white strong { font-size: 18px; }
+.customer-quick-link small { display: block; margin-top: 9px; color: #8a9182; font-size: 12px; line-height: 1.6; }
+.customer-quick-link-green small { color: #52653b; }
+.customer-quick-link-black small { color: #bec7b2; }
+.customer-dashboard .sidebar-link.active, .customer-dashboard .sidebar-link:hover, .customer-dashboard .sidebar-logout:hover { background: transparent; color: var(--accent-black); }
+.customer-dashboard .sidebar-link.active svg { stroke-width: 2.2; }
+.customer-dashboard .sidebar-logout { border: 0; box-shadow: none; background: transparent; }
+.customer-recommendations { margin-top: 32px; padding-top: 26px; border-top: 1px solid #f0f2eb; }
+.customer-section-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 20px; }
+.customer-section-heading h2 { margin: 0; font-size: 26px; font-weight: 500; letter-spacing: -0.6px; }
+.customer-section-heading p { margin: 8px 0 0; color: #919786; font-size: 11px; }
+.customer-recommendation-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 22px; }
+.customer-recommendation { min-width: 0; overflow: hidden; border-radius: var(--surface-radius); background: #fafbf8; color: inherit; text-decoration: none; transition: background 150ms ease; }
+.customer-recommendation:hover { background: #f1f6e9; }
+.customer-recommendation-image { height: 135px; margin: 5px; overflow: hidden; border-radius: calc(var(--surface-radius) - 5px); }
+.customer-recommendation-image img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.customer-recommendation-copy { padding: 12px 16px 16px; }
+.customer-recommendation h3 { margin: 10px 0 8px; font-size: 15px; font-weight: 500; letter-spacing: -0.3px; }
+.customer-recommendation p { margin: 0; color: #8b9282; font-size: 11px; line-height: 1.65; }
+.customer-card-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 16px; color: #7d886f; font-size: 9px; }
+.customer-card-footer svg { width: 16px; height: 16px; }
+.customer-empty { margin: 12px 0; color: #7c886f; font-size: 12px; line-height: 1.7; }
+@media (max-width: 1050px) {
+  .customer-overview { padding-inline: 24px; }
+  .customer-overview-top { grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 12px; }
+  .customer-hero { height: 420px; }
+  .customer-quick-links h2 { font-size: 18px; }
+  .customer-quick-link { gap: 10px; padding: 16px; }
+}
+@media (max-width: 760px) {
+  .customer-overview-top { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+  .customer-hero { height: 390px; }
+  .customer-quick-list { gap: 10px; }
+  .customer-quick-link { min-height: 165px; }
+  .customer-recommendation-grid { grid-template-columns: minmax(0, 1fr); gap: 18px; }
+  .customer-recommendation-image { height: 160px; }
+}
+@media (max-width: 520px) {
+  .customer-overview { padding: 8px 16px 30px; }
+  .customer-welcome { margin-bottom: 20px; }
+  .customer-hero { height: 360px; }
+  .customer-hero-caption { padding: 16px; }
+  .customer-hero-footer { font-size: 11px; }
+  .customer-section-heading h2 { font-size: 23px; }
+}
