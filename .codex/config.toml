@@ -1,0 +1,60 @@
+# Project settings for Codex CLI 0.169+. Review/trust the project and its hooks.
+# Do not combine this profile with sandbox_mode or --sandbox overrides.
+approval_policy = "on-request"
+default_permissions = "solvex"
+
+[features]
+hooks = true
+
+# Deny-read restrictions require this backend on native Windows.
+# Fail rather than silently using the weaker unelevated implementation.
+[windows]
+sandbox = "elevated"
+
+[permissions.solvex]
+description = "Solvex workspace access without environment files or private keys"
+
+[permissions.solvex.filesystem]
+# The native Windows elevated backend requires root read coverage.
+# Denials below still remove secret files from that coverage.
+":root" = "read"
+":minimal" = "read"
+":tmpdir" = "write"
+":slash_tmp" = "write"
+"~/.ssh" = "deny"
+"~/.aws" = "deny"
+"~/.gnupg" = "deny"
+"~/.codex/auth.json" = "deny"
+"~/.codex/secrets" = "deny"
+"~/.t3/userdata/secrets" = "deny"
+"~/.env" = "deny"
+"~/.env.*" = "deny"
+glob_scan_max_depth = 8
+
+[permissions.solvex.filesystem.":workspace_roots"]
+"." = "write"
+".codex" = "read"
+".env" = "deny"
+"backend/.env" = "deny"
+"frontend/.env" = "deny"
+"**/.env" = "deny"
+"**/.env.*" = "deny"
+"**/*.pem" = "deny"
+"**/*.key" = "deny"
+"**/*.p12" = "deny"
+"**/*.pfx" = "deny"
+"**/id_rsa*" = "deny"
+"**/id_ed25519*" = "deny"
+
+# npm installation and PostgreSQL integration tests need network/localhost.
+# This permits networking; it does not claim to filter external domains.
+[permissions.solvex.network]
+enabled = true
+
+# Local browser checks; no account tokens or personal browser profile.
+[mcp_servers.playwright]
+command = "npx"
+args = ["--yes", "@playwright/mcp@0.0.86", "--headless", "--browser", "chrome", "--isolated", "--block-service-workers", "--no-webmcp", "--allowed-origins", "http://localhost:5173;http://127.0.0.1:5173;http://localhost:3000;http://127.0.0.1:3000", "--output-dir", ".playwright-mcp"]
+startup_timeout_sec = 60
+tool_timeout_sec = 60
+enabled_tools = ["browser_navigate", "browser_snapshot", "browser_click", "browser_fill_form", "browser_press_key", "browser_tabs", "browser_close", "browser_network_requests", "browser_console_messages", "browser_wait_for"]

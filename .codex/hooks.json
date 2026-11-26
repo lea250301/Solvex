@@ -1,0 +1,31 @@
+{
+  "description": "Solvex: guard sensitive tools and lint changed source files.",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node -e \"require(require('node:child_process').execFileSync('git',['rev-parse','--show-toplevel'],{encoding:'utf8'}).trim()+'/.codex/hooks/guard.cjs')\"",
+            "timeout": 10,
+            "statusMessage": "Checking Solvex safety policy"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "^(apply_patch|Edit|Write|Bash)$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node -e \"require(require('node:child_process').execFileSync('git',['rev-parse','--show-toplevel'],{encoding:'utf8'}).trim()+'/.codex/hooks/lint-changed.cjs')\"",
+            "timeout": 90,
+            "statusMessage": "Linting changed source files"
+          }
+        ]
+      }
+    ]
+  }
+}

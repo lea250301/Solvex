@@ -49,6 +49,24 @@ CREATE TABLE solar_plants (
     UNIQUE (id_customer, name)
 );
 
+CREATE TABLE service_requests (
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    id_solar_plant BIGINT NOT NULL
+        REFERENCES solar_plants(id_solar_plants) ON DELETE RESTRICT,
+    request_type VARCHAR(30) NOT NULL
+        CHECK (request_type IN ('fault_report', 'regular_inspection')),
+    description TEXT,
+    preferred_date DATE,
+    status VARCHAR(20) NOT NULL DEFAULT 'submitted'
+        CHECK (status IN ('submitted', 'reviewing', 'scheduled', 'completed', 'rejected', 'cancelled')),
+    requested_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    CHECK (
+        request_type <> 'fault_report'
+        OR NULLIF(BTRIM(description), '') IS NOT NULL
+    ),
+    UNIQUE (id, id_solar_plant)
+);
+
 CREATE TABLE services (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     id_solar_plant BIGINT NOT NULL
@@ -90,21 +108,3 @@ CREATE TABLE service_reports (
 
 ALTER TABLE service_reports
     ADD COLUMN IF NOT EXISTS submitted_at TIMESTAMPTZ;
-
-CREATE TABLE service_requests (
-    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    id_solar_plant BIGINT NOT NULL
-        REFERENCES solar_plants(id_solar_plants) ON DELETE RESTRICT,
-    request_type VARCHAR(30) NOT NULL
-        CHECK (request_type IN ('fault_report', 'regular_inspection')),
-    description TEXT,
-    preferred_date DATE,
-    status VARCHAR(20) NOT NULL DEFAULT 'submitted'
-        CHECK (status IN ('submitted', 'reviewing', 'scheduled', 'completed', 'rejected', 'cancelled')),
-    requested_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    CHECK (
-        request_type <> 'fault_report'
-        OR NULLIF(BTRIM(description), '') IS NOT NULL
-    ),
-    UNIQUE (id, id_solar_plant)
-);

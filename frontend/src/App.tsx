@@ -1,6 +1,8 @@
 import { Fragment, useEffect, useState, type SubmitEvent } from 'react'
 import './App.css'
 
+const apiBase = (import.meta.env.VITE_API_URL ?? '/api').replace(/\/$/, '')
+
 type Employee = {
   id: string
   first_name: string
@@ -131,7 +133,7 @@ function App() {
       setServicesError('')
 
       try {
-        const response = await fetch('/api/services', {
+        const response = await fetch(`${apiBase}/services`, {
           signal: controller.signal,
         })
         const result = (await response.json().catch(() => ({}))) as {
@@ -175,7 +177,7 @@ function App() {
     }
 
     const controller = new AbortController()
-    const employeePath = `/api/employees/${encodeURIComponent(employee.id)}`
+    const employeePath = `${apiBase}/employees/${encodeURIComponent(employee.id)}`
 
     async function loadAssignedServices() {
       setAssignedServicesState('loading')
@@ -291,7 +293,7 @@ function App() {
     setIsSubmitting(true)
 
     try {
-      const response = await fetch('/api/employees/login', {
+      const response = await fetch(`${apiBase}/employees/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
@@ -403,7 +405,7 @@ function App() {
 
     try {
       const reportPath =
-        `/api/employees/${encodeURIComponent(employee.id)}/service-reports`
+        `${apiBase}/employees/${encodeURIComponent(employee.id)}/service-reports`
       const response = await fetch(
         editingReport
           ? `${reportPath}/${encodeURIComponent(editingReport.id)}`
@@ -471,7 +473,7 @@ function App() {
 
     try {
       const response = await fetch(
-        `/api/employees/${encodeURIComponent(employee.id)}/service-reports/${encodeURIComponent(report.id)}/submit`,
+        `${apiBase}/employees/${encodeURIComponent(employee.id)}/service-reports/${encodeURIComponent(report.id)}/submit`,
         { method: 'POST' },
       )
       const result = (await response.json().catch(() => ({}))) as {
